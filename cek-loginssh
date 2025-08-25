@@ -1,0 +1,116 @@
+#!/bin/bash
+
+# --- Color Definitions ---
+g="\e[92;1m"
+RED="\033[31m"
+NC='\033[0m'
+y='\033[1;93m'
+gg='\e[1;77m'
+ungu="\033[0;35m"
+UK='\e[38;5;99m'
+WHITE="\033[1;37m"
+
+# --- Function to Get Logged-in Users (from cekssh) ---
+get_logged_in_users() {
+    # Determine the correct log file
+    if [ -e "/var/log/auth.log" ]; then
+        LOG="/var/log/auth.log"
+    elif [ -e "/var/log/secure" ]; then
+        LOG="/var/log/secure"
+    else
+        echo "Error: Could not find auth.log or secure log." >&2
+        exit 1
+    fi
+
+    # Check Dropbear connections
+    # [cite_start]Filter for successful Dropbear authentications from the log file [cite: 6]
+    cat $LOG | grep -i dropbear | grep -i "Password auth succeeded" > /tmp/login-db.txt
+    # [cite_start]Get all process IDs for Dropbear [cite: 5]
+    data=( `ps aux | grep -i dropbear | awk '{print $2}'` )
+
+    for PID in "${data[@]}"; do
+        # [cite_start]Match the PID with the log entries [cite: 8]
+        grep "dropbear\[$PID\]" /tmp/login-db.txt > /tmp/login-db-pid.txt
+        NUM=$(cat /tmp/login-db-pid.txt | wc -l)
+        
+        # [cite_start]If a unique match is found, extract user and IP [cite: 10]
+        if [ "$NUM" -eq 1 ]; then
+            USER=$(awk -F"for '" '{print $2}' /tmp/login-db-pid.txt | awk '{print $1}')
+            IP=$(awk -F"for '" '{print $2}' /tmp/login-db-pid.txt | awk '{print $4}' | sed "s/'$//")
+            echo "$USER"
+        fi
+    done
+
+    # Check OpenSSH connections
+    # [cite_start]Filter for successful SSHd authentications from the log file [cite: 12]
+    cat $LOG | grep -i sshd | grep -i "Accepted password for" > /tmp/login-db.txt
+    # [cite_start]Get all process IDs for privileged SSHd processes [cite: 13]
+    data=( `ps aux | grep "sshd: " | grep -v "grep" | awk '{print $2}'` )
+
+    for PID in "${data[@]}"; do
+        # [cite_start]Match the PID with the log entries [cite: 14]
+        grep "sshd\[$PID\]" /tmp/login-db.txt > /tmp/login-db-pid.txt
+        NUM=$(cat /tmp/login-db-pid.txt | wc -l)
+
+        # [cite_start]If a unique match is found, extract user and IP [cite: 16]
+        if [ "$NUM" -eq 1 ]; then
+            USER=$(awk -F"for " '{print $2}' /tmp/login-db-pid.txt | awk '{print $1}')
+            IP=$(awk -F"from " '{print $2}' /tmp/login-db-pid.txt | awk '{print $1}')
+            echo "$USER"
+        fi
+    done
+}
+
+# --- Main Script Logic ---
+clear
+
+# Ensure IP limit directory and files exist for each user
+data1=( `awk -F: '$3 >= 1000 && $1 != "nobody" {print $1}' /etc/passwd` )
+for user in "${data1[@]}"; do
+    dir="/etc/limit/ssh/ip"
+    iplimit1="$dir/$user"
+
+    # [cite_start]Create the directory if it doesn't exist [cite: 25]
+    if [[ ! -d $dir ]]; then
+        mkdir -p $dir
+    fi
+
+    # [cite_start]Create a default limit file if it doesn't exist or is empty [cite: 26]
+    if [[ ! -f $iplimit1 || ! -s $iplimit1 ]]; then
+        echo "2" > "$iplimit1"
+    fi
+done
+
+clear
+echo -e "  ${y}───────────────────────────────────────${NC}"
+echo -e "            ️ ${g}USER LOGIN SSH${NC}  ️"
+echo -e "  ${y}───────────────────────────────────────${NC}"
+echo -e "    ${ungu} LOGIN IP    LIMIT IP    USERNAME ${NC}"
+
+# Get the list of logged-in users
+mulog=$(get_logged_in_users)
+touch /root/.system
+
+# Get all non-system users
+data=( `awk -F: '$3 >= 1000 && $1 != "nobody" {print $1}' /etc/passwd` )
+
+for user in "${data[@]}"; do
+    # Count how many times the user appears in the login list
+    cekcek=$(echo "$mulog" | grep -wE "$user" | wc -l)
+    
+    # [cite_start]If the user is logged in, display their info [cite: 27]
+    if [[ $cekcek -gt 0 ]]; then
+        iplimit=$(cat "/etc/limit/ssh/ip/$user")
+        printf "  %-13s %-7s %-8s %2s\n" "     ${cekcek} IP        ${iplimit} IP      ${user}"
+        # Keep track of active users
+        echo "slot" >> /root/.system
+    fi
+done
+
+aktif=$(cat /root/.system | wc -l)
+echo -e "  ${y}───────────────────────────────────────${NC}"
+echo -e "            $aktif User Online"
+echo -e "  ${y}───────────────────────────────────────${NC}"
+
+# Clean up temporary file
+rm -f /root/.system

@@ -1,0 +1,319 @@
+#!/bin/bash
+clear
+RED='\033[0;31m'
+NC='\033[0m'
+GRAY="\e[1;30m"
+ORANGE='\033[0;33m'
+CYAN='\033[0;36m'
+BLUE="\033[97m"
+GREEN="\e[38;5;155m"
+GRENBO="\e[92;1m"
+YELL='\033[0;33m'
+BIYellow='\033[1;93m'
+BIWhite='\033[1;97m'
+IGreen='\033[0;92m'
+# Getting
+MYIP=$(curl -sS ipv4.icanhazip.com)
+echo -e "\e[32mloading...\e[0m"
+clear
+IP=$(wget -qO- icanhazip.com)
+dateToday=$(date +"%Y-%m-%d")
+Name=$(curl https://raw.githubusercontent.com/sehuadri/project/main/ip | grep $MYIP | awk '{print $2}')
+
+if ! command -v jq &> /dev/null
+then
+    echo "[ ${BIWhite}INFO${NC} ] Installing jq for JSON parsing..."
+    if [[ -f /etc/debian_version ]]; then
+        sudo apt-get update
+        sudo apt-get install -y jq
+    elif [[ -f /etc/redhat-release ]]; then
+        sudo yum install -y jq
+    fi
+fi
+
+
+
+setup_bot() {
+    switch=$(grep -i "switch" /root/.bckupbot | awk '{print $2}')
+    echo "Pergi ke @BotFather dan type /newbot untuk membuat bot baru"
+    echo "Pergi ke @MissRose_bot dan type /id untuk mendapatkan ID telegram"
+    echo ""
+    read -p "Bot Token : " getToken
+    echo ""
+    read -p "Admin ID  : " adminID
+    echo "$getToken" >/root/.bckupbot
+    echo "$adminID" >>/root/.bckupbot
+    echo "switch $switch" >>/root/.bckupbot
+    read -n 1 -s -r -p "Press any key to back on Bot menu"
+    botbckpBot_menu
+}
+
+botBackup() {
+    bottoken=$(sed -n '1p' /root/.bckupbot | awk '{print $1}')
+    adminid=$(sed -n '2p' /root/.bckupbot | awk '{print $1}')
+
+    if [[ -z "$bottoken" || -z "$adminid" ]]; then
+        echo -e "[ ${RED}ERROR${NC} ] Bot token or Admin ID is empty. Please check /root/.bckupbot file."
+        exit 1
+    fi
+
+    echo -e "[ ${BIWhite}INFO${NC} ] » Please Wait.... "
+    sleep 1
+    echo -e "[ ${BIWhite}INFO${NC} ] » Prepare Before Backup Vps Data... "
+    rm -rf /root/backup &>/dev/null
+    sleep 1
+    echo -e "[ ${BIWhite}INFO${NC} ] » Directory Created... "
+    mkdir -p /root/backup &>/dev/null
+    sleep 1
+    echo -e "[ ${BIWhite}INFO${NC} ] » VPS Data Backup Start Now... "
+    sleep 1
+    cp /etc/passwd backup/ &>/dev/null
+    echo -e "[ ${BIWhite}INFO${NC} ] » Backup passwd data..."
+    sleep 1
+    cp /etc/group backup/ &>/dev/null
+    echo -e "[ ${BIWhite}INFO${NC} ] » Backup group data..."
+    sleep 1
+    cp /etc/shadow backup/ &>/dev/null
+    echo -e "[ ${BIWhite}INFO${NC} ] » Backup shadow data..."
+    sleep 1
+    cp /etc/gshadow backup/ &>/dev/null
+    echo -e "[ ${BIWhite}INFO${NC} ] » Backup gshadow data..."
+    sleep 1
+    cp /etc/crontab backup/ &>/dev/null
+    cp /etc/vmess/.vmess.db backup/ &>/dev/null
+    cp /etc/vless/.vless.db backup/ &>/dev/null
+    cp /etc/trojan/.trojan.db backup/ &>/dev/null
+    cp /etc/shadowsocks/.shadowsocks.db backup/ &>/dev/null
+    cp -r /etc/limit backup/ &>/dev/null
+    cp -r /etc/vmess backup/ &>/dev/null
+    cp -r /etc/trojan backup/ &>/dev/null
+    cp -r /etc/vless backup/ &>/dev/null
+    cp -r /etc/shadowsocks backup/ &>/dev/null
+    cp -r /etc/xray backup/xray &>/dev/null
+    cp -r /var/www/html/ backup/html &>/dev/null
+    cp -a /detail/ backup/detail &>/dev/null
+    
+    cd /root
+    zip -r "$IP-$Name-$dateToday.zip" backup >/dev/null 2>&1
+    sleep 1
+
+    echo -e "[ ${BIWhite}INFO${NC} ] » Sending Via Bot... "
+    response=$(curl -s --max-time 30 -F chat_id="${adminid}" -F caption="» Backup File from VPS: ${IP}" -F document=@"$IP-$Name-$dateToday.zip" "https://api.telegram.org/bot${bottoken}/sendDocument")
+    sleep 1
+
+    if [[ $(echo "$response" | jq -r '.ok') != "true" ]]; then
+        echo -e "[ ${RED}ERROR${NC} ] Failed to send document."
+        echo -e "[ ${RED}ERROR${NC} ] Telegram API response: $response"
+        rm -rf /root/backup /root/$IP-$Name-$dateToday.zip
+        exit 1
+    fi
+    
+    fileId=$(echo "$response" | jq -r '.result.document.file_id')
+    if [ -z "$fileId" ]; then
+        echo -e "[ ${RED}ERROR${NC} ] Failed to get file ID from the response."
+        echo -e "[ ${RED}ERROR${NC} ] Telegram API response: $response"
+        rm -rf /root/backup /root/$IP-$Name-$dateToday.zip
+        exit 1
+    fi
+    
+    echo -e "[ ${BIWhite}INFO${NC} ] » File ID: $fileId"
+    sleep 1
+
+    filePathResponse=$(wget -qO- --timeout=15 "https://api.telegram.org/bot${bottoken}/getfile?file_id=${fileId}")
+    if [[ $(echo "$filePathResponse" | jq -r '.ok') != "true" ]]; then
+        echo -e "[ ${RED}ERROR${NC} ] Failed to get file path."
+        echo -e "[ ${RED}ERROR${NC} ] Telegram API response: $filePathResponse"
+        rm -rf /root/backup /root/$IP-$Name-$dateToday.zip
+        exit 1
+    fi
+
+    filePath=$(echo "$filePathResponse" | jq -r '.result.file_path')
+    echo -e "[ ${BIWhite}INFO${NC} ] » File Path: $filePath"
+    sleep 1
+    
+    if [ -n "$filePath" ]; then
+        messageText="<b>File ID:</b> <code>${fileId}</code>%0A<b>File Path:</b> <code>${filePath}</code>"
+        sendMessageResponse=$(wget -qO- --timeout=15 "https://api.telegram.org/bot${bottoken}/sendMessage?chat_id=${adminid}&text=${messageText}&parse_mode=html")
+
+        if [[ $(echo "$sendMessageResponse" | jq -r '.ok') != "true" ]]; then
+            echo -e "[ ${RED}ERROR${NC} ] Failed to send message with File ID and File Path."
+            echo -e "[ ${RED}ERROR${NC} ] Telegram API response: $sendMessageResponse"
+        fi
+    fi
+
+    echo -e "[ ${BIWhite}INFO${NC} ] » Completed... "
+    sleep 1
+
+    rm -rf /root/backup
+    rm -rf /root/$IP-$Name-$dateToday.zip
+    read -n 1 -s -r -p "Press any key to back on menu"
+    botbckpBot_menu
+}
+
+restoreBot() {
+    bottoken=$(sed -n '1p' /root/.bckupbot | awk '{print $1}')
+    
+    read -p "File ID   : " fileId
+    read -p "File PATH : " filePath
+    
+    echo -e "[ ${BIWhite}INFO${NC} ] » Restoring Data..."
+    sleep 1
+    echo -e "[ ${BIWhite}INFO${NC} ] » Getting your data..."
+    wget -qO backup.zip "https://api.telegram.org/file/bot${bottoken}/${filePath}"
+    
+    if [ ! -f backup.zip ]; then
+        echo -e "[ ${RED}ERROR${NC} ] Failed to download backup file."
+        rm -f backup.zip
+        read -n 1 -s -r -p "Press any key to back on menu"
+        botbckpBot_menu
+    fi
+
+    echo -e "[ ${BIWhite}INFO${NC} ] » Starting to restore data..."
+    sleep 1
+    unzip backup.zip >/dev/null 2>&1
+    rm -f backup.zip
+    
+    cd /root/backup
+    echo -e "[ ${BIWhite}INFO${NC} ] » Please Wait , Restoring In Process Now... "
+    sleep 1
+    
+    cp passwd /etc/
+    echo -e "[ ${BIWhite}INFO${NC} ] » Restoring passwd data..."
+    sleep 1
+    cp group /etc/
+    echo -e "[ ${BIWhite}INFO${NC} ] » Restoring group data..."
+    sleep 1
+    cp shadow /etc/
+    echo -e "[ ${BIWhite}INFO${NC} ] » Restoring shadow data..."
+    sleep 1
+    cp gshadow /etc/
+    echo -e "[ ${BIWhite}INFO${NC} ] » Restoring gshadow data..."
+    sleep 1
+    
+    cp crontab /etc/
+    cp -r xray /etc/
+    cp -r html /var/www/
+    cp .vmess.db /etc/vmess/
+    cp .vless.db /etc/vless/
+    cp .trojan.db /etc/trojan/
+    cp .shadowsocks.db /etc/shadowsocks/
+    cp -r limit /etc/
+    cp -r vmess /etc/
+    cp -r trojan /etc/
+    cp -r vless /etc/
+    cp -r shadowsocks /etc/
+    cp -a detail/. /detail/
+    
+    rm -rf /root/backup
+    echo -e "[ ${BIWhite}INFO${NC} ] » Done Restore... "
+    sleep 1
+    read -n 1 -s -r -p "Press any key to back on menu"
+    botbckpBot_menu
+}
+
+function start_autobot() {
+    
+    if [[ "$cek_status" = "0" ]]; then
+        (crontab -l 2>/dev/null; echo "0 */5 * * * /usr/local/sbin/autobotbkp") | crontab -
+        echo -e "${IGreen}Autobackup has been started.${NC}"
+        echo -e "${BIWhite}Data akan dibackup otomatis setiap 5 jam sekali (GMT +7).${NC}"
+        sleep 3
+    else
+        echo -e "${BIYellow}Autobackup sudah di aktifkan.${NC}"
+    fi
+    sleep 1
+    botbckpBot_menu
+}
+
+
+function stop_autobot() {
+    
+    if [[ "$cek_status" = "1" ]]; then
+        crontab -l 2>/dev/null | grep -v "/usr/local/sbin/autobotbkp" | crontab -
+        echo -e "${RED}Autobackup Sudah di hentikan.${NC}"
+    else
+        echo -e "${BIYellow}Autobackup sudah tidak aktif.${NC}"
+    fi
+    sleep 1
+    botbckpBot_menu
+}
+
+botbckpBot_menu() {
+    clear
+    Green_font_prefix="\033[32m" && Red_font_prefix="\033[31m" && Font_color_suffix="\033[0m"
+    Info="${Green_font_prefix}[ON]${Font_color_suffix}"
+    Error="${Red_font_prefix}[OFF]${Font_color_suffix}"
+    cek_status=$(crontab -l 2>/dev/null | grep -c "/usr/local/sbin/autobotbkp")
+
+    if [[ "$cek_status" = "1" ]]; then
+        sts="${Info}"
+    else
+        sts="${Error}"
+    fi 
+ 
+    echo -e "${BIWhite}──────────────────────────────────────${NC}"
+    echo -e "${BIYellow}BACKUP & RESTORE WITH BOT${NC}"
+    echo -e "${BIWhite}──────────────────────────────────────${NC}"
+    echo -e "${BIWhite}──────────────────────────────────────${NC}"
+    echo -e "${BIWhite}Status Autobackup Bot :${NC} ${sts}"    
+    echo -e "${IGreen}[${BIWhite}01${IGreen}] ${NC}${BIWhite}Start Autobackup${NC}"
+    echo -e "${IGreen}[${BIWhite}02${IGreen}] ${NC}${BIWhite}Stop Autobackup${NC}"
+    echo -e "${IGreen}[${BIWhite}03${IGreen}] ${NC}${BIWhite}Backup${NC}"
+    echo -e "${IGreen}[${BIWhite}04${IGreen}] ${NC}${BIWhite}Restore${NC}"
+    echo -e "${IGreen}[${BIWhite}05${IGreen}] ${NC}${BIWhite}Setup Bot${NC}"
+    echo -e "${BIWhite}──────────────────────────────────────${NC}"
+    echo -e "${BIYellow}Input x or [ Ctrl+C ] » To-${BIWhite}Exit${NC}"
+    echo -e "${BIWhite}──────────────────────────────────────${NC}"
+    echo ""
+    read -p "Select menu :" opt
+    echo -e ""
+    case $opt in    
+    1)
+        clear
+        start_autobot
+        ;;
+    2)
+        clear
+        stop_autobot
+        ;;
+    3)
+        clear
+        botBackup
+        ;;
+    4)
+        clear
+        restoreBot
+        ;;
+    5)
+        clear
+        setup_bot
+        ;;
+    0)
+        menu
+        ;;
+     x)
+        menu
+        ;;
+    *)
+        menu
+        ;;
+    esac
+}
+
+clear
+[[ ! -f /root/.bckupbot ]] && {
+    echo "Please Input Bot Details First"
+    sleep 2
+    clear
+    read -p "Bot Token : " getToken
+    read -p "Admin ID  : " adminID
+    echo "$getToken" >/root/.bckupbot
+    echo "$adminID" >>/root/.bckupbot
+    echo "switch off" >>/root/.bckupbot
+}
+read -t 10 -p "Backup y/n?  " directBckp
+if [ "${directBckp}" == "n" ]; then
+    botbckpBot_menu
+else
+    botBackup
+fi

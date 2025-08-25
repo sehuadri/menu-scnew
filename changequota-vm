@@ -1,0 +1,97 @@
+#!/bin/bash
+clear
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+YELLOW='\033[1;33m'
+RESET='\033[0m'
+
+function change_vmess_quota() {
+    # Daftar pengguna dari config.json
+    users=$(grep -oP "^### \K[^ ]+" /etc/xray/config.json | awk '!seen[$0]++')
+
+    if [[ -z $users ]]; then
+        echo -e "${RED}Tidak ada pengguna yang ditemukan di /etc/xray/config.json${RESET}"
+        read -n 1 -s -r -p "Press any key to back on menu"
+        m-vmess
+    fi
+
+    echo -e "${CYAN}---------------------------------------------${RESET}"
+    echo -e "${YELLOW}Daftar Pengguna${RESET}"
+    echo -e "${CYAN}---------------------------------------------${RESET}"
+
+    i=1
+    for user in $users; do
+        echo "$i) $user"
+        ((i++))
+    done
+
+    echo ""
+    read -p "Pilih pengguna berdasarkan nomor: " number
+    user=$(echo "$users" | sed -n "${number}p")
+
+    if [[ -z "$user" ]]; then
+        echo -e "${RED}Nomor yang dimasukkan salah atau tidak ada.${RESET}"
+        read -n 1 -s -r -p "Press any key to back on menu"
+        m-vmess
+    fi
+
+    # File kuota
+    quota_file="/etc/vmess/${user}"
+    quota_dir=$(dirname "$quota_file")
+
+    # Buat direktori jika belum ada
+    if [ ! -d "$quota_dir" ]; then
+        mkdir -p "$quota_dir"
+        echo -e "${GREEN}Direktori $quota_dir dibuat.${RESET}"
+    fi
+
+    # Tampilkan kuota saat ini
+    if [ -f "$quota_file" ]; then
+        current_quota=$(cat "$quota_file")
+        current_quota_gb=$((current_quota / 1024 / 1024 / 1024))
+        echo -e "${CYAN}---------------------------------------------${RESET}"
+        echo -e "${YELLOW}Kuota Sebelumnya${RESET}"
+        echo -e "${CYAN}---------------------------------------------${RESET}"
+        echo "Pengguna    : $user"
+        echo "Kuota       : $current_quota_gb GB"
+    else
+        echo -e "${RED}Tidak ada kuota yang diset untuk $user.${RESET}"
+    fi
+
+    # Input kuota baru
+    echo ""
+    read -p "Masukkan kuota baru (dalam GB): " new_quota
+    if [[ -z "$new_quota" || ! "$new_quota" =~ ^[0-9]+$ ]]; then
+        echo -e "${RED}Input kuota tidak valid.${RESET}"
+        read -n 1 -s -r -p "Press any key to back on menu"
+        m-vmess
+    fi
+
+    # Ubah kuota ke byte dan simpan
+    new_quota_bytes=$((new_quota * 1024 * 1024 * 1024))
+    echo "$new_quota_bytes" > "$quota_file"
+
+    # Perbarui database
+    sed -i "/^### $user /d" /etc/vmess/.vmess.db
+    exp=$(grep "^### $user " /etc/xray/config.json | awk '{print $3}')
+    uuid=$(grep "^### $user " /etc/xray/config.json | awk '{print $4}')
+    iplimit=$(grep -w "$user" /etc/limit/vmess/ip | cat || echo 0)
+
+    echo "### $user $exp $uuid $new_quota $iplimit" >> /etc/vmess/.vmess.db
+
+    # Konfirmasi perubahan
+    echo -e "${CYAN}---------------------------------------------${RESET}"
+    echo -e "${GREEN}Kuota Baru Berhasil Diubah${RESET}"
+    echo -e "${CYAN}---------------------------------------------${RESET}"
+    echo "Pengguna    : $user"
+    echo "Kuota Baru  : $new_quota GB"
+    echo -e "${CYAN}---------------------------------------------${RESET}"
+    
+    read -n 1 -s -r -p "Press any key to back on menu"
+    m-vmess
+}
+
+change_vmess_quota

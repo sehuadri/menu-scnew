@@ -1,0 +1,199 @@
+#!/bin/bash
+clear
+PERMISSION() {
+    MYIP=$(curl -sS ipv4.icanhazip.com)
+
+    TODAY_DATE=$(date +'%Y-%m-%d')
+
+    AUTHORIZED_ENTRY=$(curl -sS https://raw.githubusercontent.com/sehuadri/project/main/ip | grep -w "$MYIP" | head -1)
+
+    if [[ -n "$AUTHORIZED_ENTRY" ]]; then
+        # IP_FROM_ENTRY sekarang adalah field ke-4
+        IP_FROM_ENTRY=$(echo "$AUTHORIZED_ENTRY" | awk '{print $4}')
+        # EXP_DATE_OR_LIFETIME_STATUS sekarang adalah field ke-3
+        EXP_DATE_OR_LIFETIME_STATUS=$(echo "$AUTHORIZED_ENTRY" | awk '{print $3}') 
+
+        if [ "$MYIP" = "$IP_FROM_ENTRY" ]; then
+            # Cek apakah statusnya 'lifetime'
+            if [[ "$EXP_DATE_OR_LIFETIME_STATUS" == "lifetime" ]]; then
+                echo -e "\033[1;92mPermission Accepted (Lifetime User)\033[0m"
+                echo -e "\033[1;97mAkses Di Izinkan (Pengguna Lifetime)${NC}"
+            # Jika bukan 'lifetime', baru lakukan perbandingan tanggal
+            elif [[ "$TODAY_DATE" < "$EXP_DATE_OR_LIFETIME_STATUS" ]]; then
+                echo -e "\033[1;92mPermission Accepted\033[0m"
+                echo -e "\033[1;97mAkses Di Izinkan${NC}"
+            elif [[ "$TODAY_DATE" == "$EXP_DATE_OR_LIFETIME_STATUS" ]]; then
+                echo -e "\033[1;93mPermission Accepted (Today is Expiry Date)\033[0m"
+                echo -e "\033[1;97mAkses Di Izinkan (Hari Ini Kadaluarsa)${NC}"
+            else
+                echo -e "\033[1;91mPermission Denied (Expired)\033[0m"
+                echo -e "\033[1;97mAkses Di Tolak (Kadaluarsa)${NC}"
+                read -n 1 -s -r -p "Press [ Enter ] to Exit"
+                exit 1
+            fi
+        else
+            echo -e "\033[1;91mPermission Denied (IP Mismatch)\033[0m"
+            echo -e "\033[1;97mAkses Di Tolak (IP Tidak Cocok)${NC}"
+            read -n 1 -s -r -p "Press [ Enter ] to Exit"
+            exit 1
+        fi
+    else
+        echo -e "\033[1;91mPermission Denied (IP Not Found)\033[0m"
+        echo -e "\033[1;97mAkses Di Tolak (IP Tidak Ditemukan)${NC}"
+        read -n 1 -s -r -p "Press [ Enter ] to Exit"
+        exit 1
+    fi
+}
+
+PERMISSION
+clear
+greenBe="\033[5;32m"
+NS=$(cat /etc/xray/dns 2>/dev/null)
+PUB=$(cat /etc/slowdns/server.pub 2>/dev/null)
+domain=$(cat /etc/xray/domain 2>/dev/null)
+cd /etc/systemd/system/ 2>/dev/null
+rm -rf give.service 2>/dev/null
+cd
+grenbo="\e[92;1m"
+NC='\e[0m'
+cd /usr/bin
+rm -rf give bot 2>/dev/null
+rm -f give.* bot.* 2>/dev/null
+OS_ID=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"')
+OS_VERSION=$(grep -oP '(?<=^VERSION_ID=).+' /etc/os-release | tr -d '"')
+# Hilangkan titik pada versi (contoh: "24.04" menjadi "2404")
+OS_VERSION_CLEAN=${OS_VERSION//./}
+# Jika OS Debian 12+ atau Ubuntu 24+, gunakan virtual environment
+OS_MAJOR="${OS_VERSION_CLEAN:0:2}"  # Ambil dua digit pertama
+if [[ ("$OS_ID" == "debian" && "$OS_MAJOR" -ge 12 && "$OS_MAJOR" -le 99) || \
+      ("$OS_ID" == "ubuntu" && "$OS_MAJOR" -ge 24 && "$OS_MAJOR" -le 99) ]]; then
+    echo -e "\033[1;33mOS Terdeteksi: $OS_ID $OS_VERSION, menggunakan Virtual Environment...\033[0m"    
+    # Install python3-venv jika belum ada
+    apt update && apt install -y python3-venv python3-pip python3-full pipx
+    # Buat environment di /opt/python-env
+    python3 -m venv /opt/python-env    
+    # Aktifkan environment
+    source /opt/python-env/bin/activate
+    # Pastikan pip tersedia
+    /opt/python-env/bin/pip install --upgrade pip
+    # Set PATH agar bot bisa menjalankan Python dari environment ini
+    echo 'export PATH="/opt/python-env/bin:$PATH"' >> ~/.bashrc
+    source ~/.bashrc
+    PYTHON_EXEC="/opt/python-env/bin/python3"
+else
+    echo -e "\033[1;33mOS Terdeteksi: $OS_ID $OS_VERSION, menggunakan Python bawaan...\033[0m"   
+    apt update && apt install -y neofetch python3 python3-pip git unzip dos2unix
+    PYTHON_EXEC="/usr/bin/python3"
+fi
+# Install paket yang diperlukan
+apt update && apt install -y neofetch git unzip dos2unix
+# Download Bot
+cd /usr/bin
+wget https://raw.githubusercontent.com/sehuadri/project/main/bot/bot.zip
+unzip -P miqdad12 bot.zip
+sudo dos2unix bot/*
+chmod +x bot/*
+mv bot/* /usr/bin
+rm -rf bot.zip
+clear
+wget https://raw.githubusercontent.com/sehuadri/project/main/bot/give.zip
+unzip -P miqdad12 give.zip
+cd /usr/bin/give
+# Cek apakah file requirements.txt ada sebelum melanjutkan
+if [ -f "requirements.txt" ]; then
+    if [[ -d "/opt/python-env" ]]; then
+        /opt/python-env/bin/pip install -r requirements.txt
+    else
+        pip3 install --no-cache-dir telethon==1.24.0 requests==2.25.1
+        pip3 install -r requirements.txt
+    fi
+else
+    echo "requirements.txt tidak ditemukan di /usr/bin/give"
+    return
+fi
+
+apt install speedtest-cli
+
+clear
+echo -e "\033[1;97m──────────────────────────────────────\033[0m"
+echo -e "\033[1;93mADD BOT GIVE\033[0m"
+echo -e "\033[1;97m──────────────────────────────────────\033[0m"
+read -e -p "Bot Token   : " bottoken
+echo -e "\033[1;97m──────────────────────────────────────\033[0m"
+echo -e BOT_TOKEN='"'$bottoken'"' >> /usr/bin/give/var.txt
+echo -e DOMAIN='"'$domain'"' >> /usr/bin/give/var.txt
+echo -e PUB='"'$PUB'"' >> /usr/bin/give/var.txt
+echo -e HOST='"'$NS'"' >> /usr/bin/give/var.txt
+clear
+# Buat service
+cat > /etc/systemd/system/give.service << END
+[Unit]
+Description=Simple give - @give
+After=network.target
+
+[Service]
+WorkingDirectory=/usr/bin
+ExecStart=$PYTHON_EXEC -m give
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+END
+
+systemctl daemon-reload
+systemctl start give
+systemctl enable give
+systemctl restart give
+clear
+fun_bar() {
+    CMD[0]="$1"
+    CMD[1]="$2"
+    (
+        [[ -e $HOME/fim ]] && rm $HOME/fim
+        ${CMD[0]} -y >/dev/null 2>&1
+        ${CMD[1]} -y >/dev/null 2>&1
+        touch $HOME/fim
+    ) >/dev/null 2>&1 &
+    tput civis
+    echo -ne "\033[0;33mPlease Wait Loading \033[1;37m- \033[0;33m["
+    while true; do
+        for ((i = 0; i < 15; i++)); do
+            echo -ne "\033[0;32m#"
+            sleep 0.1s
+        done
+        [[ -e $HOME/fim ]] && rm $HOME/fim && break
+        echo -e "\033[0;33m]"
+        sleep 1s
+        tput cuu1
+        tput dl1
+        echo -ne "\033[0;33mPlease Wait Loading \033[1;37m- \033[0;33m["
+    done
+    echo -e "\033[0;33m]\033[1;37m -\033[1;32m OK !\033[1;37m"
+    tput cnorm
+}
+
+aset() {
+   wget -q -O /usr/bin/addnoobz "https://raw.githubusercontent.com/sehuadri/project/main/ping/addnoobz.sh" && chmod +x /usr/bin/addnoobz
+   wget -q -O /usr/bin/cek-ssh "https://raw.githubusercontent.com/sehuadri/project/main/ping/cek-ssh.sh" && chmod +x /usr/bin/cek-ssh
+   wget -q -O /usr/bin/cek-ss "https://raw.githubusercontent.com/sehuadri/project/main/ping/cek-ss.sh" && chmod +x /usr/bin/cek-ss
+   wget -q -O /usr/bin/cek-tr "https://raw.githubusercontent.com/sehuadri/project/main/ping/cek-tr.sh" && chmod +x /usr/bin/cek-tr
+   wget -q -O /usr/bin/cek-vless "https://raw.githubusercontent.com/sehuadri/project/main/ping/cek-vless.sh" && chmod +x /usr/bin/cek-vless
+   wget -q -O /usr/bin/cek-ws "https://raw.githubusercontent.com/sehuadri/project/main/ping/cek-ws.sh" && chmod +x /usr/bin/cek-ws
+   wget -q -O /usr/bin/del-vless "https://raw.githubusercontent.com/sehuadri/project/main/ping/del-vless.sh" && chmod +x /usr/bin/del-vless
+   wget -q -O /usr/bin/cek-noobz "https://raw.githubusercontent.com/sehuadri/project/main/ping/cek-noobz.sh" && chmod +x /usr/bin/cek-noobz
+   wget -q -O /usr/bin/cek-mws "https://raw.githubusercontent.com/sehuadri/project/main/ping/cek-mws.sh" && chmod +x /usr/bin/cek-mws
+   wget -q -O /usr/bin/cek-mvs "https://raw.githubusercontent.com/sehuadri/project/main/ping/cek-mvs.sh" && chmod +x /usr/bin/cek-mvs
+   wget -q -O /usr/bin/cek-mss "https://raw.githubusercontent.com/sehuadri/project/main/ping/cek-mss.sh" && chmod +x /usr/bin/cek-mss
+   wget -q -O /usr/bin/cek-mts "https://raw.githubusercontent.com/sehuadri/project/main/ping/cek-mts.sh" && chmod +x /usr/bin/cek-mts
+   
+}
+
+fun_bar 'aset'
+clear
+cd /root
+rm -rf give.sh
+clear
+echo -e "\e[5;32mSuccessfully Installed Bot give, type /start on your bot\e[0m"
+sleep 1
+read -n 1 -s -r -p "Press [ Enter ] to return to menu"
+m-give

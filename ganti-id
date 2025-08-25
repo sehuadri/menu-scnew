@@ -1,0 +1,165 @@
+#!/bin/bash
+clear
+BC='\e[38;5;195m'
+R1='\e[38;5;155m'
+Suffix='\e[0m'
+
+CONFIG_FILE="/etc/xray/config.json"
+
+backup_config_file() {
+    local backup_name="$1"
+    if [[ -f "$backup_name" ]]; then
+        echo "Backup config.json ($backup_name) sudah ada. Tidak membuat backup baru."
+        return 0
+    fi
+    if cp "$CONFIG_FILE" "$backup_name"; then
+        echo "Backup config.json disimpan sebagai $backup_name"
+        return 0
+    else
+        echo -e "${R1}Gagal membuat backup file $backup_name.${Suffix}"
+        return 1
+    fi
+}
+
+main_change_user_id() {
+    clear
+    echo -e "${BC}---------------------------------------------${Suffix}"
+    echo -e "${R1}GANTI UUID/PASSWORD XRAY${Suffix}"
+    echo -e "${BC}---------------------------------------------${Suffix}"
+    echo -e "${BC}---------------------------------------------${Suffix}"
+    echo -e "${R1}DAFTAR MEMBER XRAY${Suffix}"
+    echo -e "${BC}---------------------------------------------${Suffix}"
+
+    accounts_vmess=$(grep -E "^ *### " "$CONFIG_FILE" | awk '{print $2, $3}')
+    accounts_vless=$(grep -E "^ *#& " "$CONFIG_FILE" | awk '{print $2, $3}')
+    accounts_trojan=$(grep -E "^ *#! " "$CONFIG_FILE" | awk '{print $2, $3}')
+    accounts_shadowsocks=$(grep -E "^ *#@& " "$CONFIG_FILE" | awk '{print $2, $3}')
+
+    all_accounts=$(echo -e "$accounts_vmess\n$accounts_vless\n$accounts_trojan\n$accounts_shadowsocks" | sort -u)
+
+    local i=1
+    declare -a usernames
+    declare -A user_comment_lines
+    declare -A user_protocol_type
+
+    echo -e "No. | Username"
+    echo -e "----|---------------------"
+    while read name exp; do
+        if [[ -n "$name" && -n "$exp" ]]; then
+            printf "%-3s | %-19s\n" "$i)" "$name"
+            usernames+=("$name")
+            local comment_line=$(grep -nE "^ *(###|#&|#!|#@&) $name " "$CONFIG_FILE" | head -n 1 | cut -d: -f1)
+            user_comment_lines["$name"]="$comment_line"
+
+            if grep -qE "^ *### $name " "$CONFIG_FILE"; then user_protocol_type["$name"]="VMESS";
+            elif grep -qE "^ *#& $name " "$CONFIG_FILE"; then user_protocol_type["$name"]="VLESS";
+            elif grep -qE "^ *#! $name " "$CONFIG_FILE"; then user_protocol_type["$name"]="TROJAN";
+            elif grep -qE "^ *#@& $name " "$CONFIG_FILE"; then user_protocol_type["$name"]="SHADOWSOCKS"; fi
+
+            ((i++))
+        fi
+    done <<< "$all_accounts"
+
+    echo -e "${BC}---------------------------------------------${Suffix}"
+    if [[ ${#usernames[@]} -eq 0 ]]; then
+        echo -e "${R1}❌ Tidak ada akun ditemukan di komentar yang dikenali!${Suffix}"
+        read -n 1 -s -r -p "Tekan apa saja untuk kembali ke menu setting"
+        m-setting
+    fi
+
+    echo ""
+    read -rp "Pilih User: " nomor
+
+    if ! [[ "$nomor" =~ ^[0-9]+$ ]] || (( nomor < 1 || nomor > ${#usernames[@]} )); then
+        echo -e "${R1}❌ Nomor tidak valid!${Suffix}"
+        read -n 1 -s -r -p "Tekan apa saja untuk kembali ke menu setting"
+        m-setting
+    fi
+
+    selected_user="${usernames[$((nomor - 1))]}"
+    line_number_comment="${user_comment_lines[$selected_user]}"
+    selected_protocol="${user_protocol_type[$selected_user]}"
+
+    if [[ -z "$line_number_comment" ]]; then
+        echo -e "${R1}❌ Kesalahan internal: Nomor baris komentar untuk user '$selected_user' tidak ditemukan.${Suffix}"
+        read -n 1 -s -r -p "Tekan apa saja untuk kembali ke menu setting"
+        m-setting
+    fi
+
+    echo ""
+    echo "Anda memilih user: $selected_user (Protokol: $selected_protocol)"
+    read -rp "UUID/Password baru: " new_id
+
+    if ! [[ "$new_id" =~ ^[a-fA-F0-9-]{36}$ ]]; then
+        echo -e "${R1}❌ Format UUID/Password tidak valid (harus 36 karakter UUID format).${Suffix}"
+        read -n 1 -s -r -p "Tekan apa saja untuk kembali ke menu setting"
+        m-setting
+    fi
+
+    local result_status=1
+
+    local backup_filename="${CONFIG_FILE}.bak"
+    if ! backup_config_file "$backup_filename"; then
+        echo -e "${R1}Operasi dibatalkan karena backup gagal atau sudah ada.${Suffix}"
+        read -n 1 -s -r -p "Tekan apa saja untuk kembali ke menu setting"
+        m-setting
+    fi
+
+    local found=0
+    local key_to_find=""
+
+    if [[ "$selected_protocol" == "VLESS" || "$selected_protocol" == "VMESS" ]]; then
+        key_to_find="\"id\":"
+    elif [[ "$selected_protocol" == "TROJAN" || "$selected_protocol" == "SHADOWSOCKS" ]]; then
+        key_to_find="\"password\":"
+    else
+        echo -e "${R1}Protokol tidak dikenal ($selected_protocol). Tidak dapat mengganti UUID/Password.${Suffix}"
+        result_status=1
+    fi
+
+    if [[ -n "$key_to_find" ]]; then
+        for (( j=1; j<=10; j++ )); do
+            local target_line=$((line_number_comment + j))
+            local line_content=$(sed -n "${target_line}p" "$CONFIG_FILE")
+
+            if echo "$line_content" | grep -qE "$key_to_find"; then
+                sed -i "${target_line}s/${key_to_find} *\"[^\"]*\"/${key_to_find} \"${new_id}\"/" "$CONFIG_FILE"
+                found=1
+                break
+            fi
+        done
+    fi
+
+    if [[ $found -eq 1 ]]; then
+        echo -e "${R1}✅ UUID/Password untuk user '$selected_user' berhasil diganti!${Suffix}"
+        echo "File $CONFIG_FILE telah diperbarui."
+        echo "Mencoba me-restart layanan xray..."
+        systemctl restart xray
+        if systemctl is-active --quiet xray; then
+            echo "✅ Layanan Xray berhasil di-restart."
+            result_status=0
+        else
+            echo "⚠️ Gagal me-restart layanan Xray. Mohon periksa secara manual."
+            result_status=1
+        fi
+    else
+        echo -e "${R1}❌ UUID/Password tidak ditemukan dalam blok klien untuk user '$selected_user' di sekitar komentar.${Suffix}"
+        echo "Pastikan struktur config.json konsisten atau sesuaikan rentang pencarian (saat ini 10 baris)."
+        result_status=1
+    fi
+
+    if [[ "$result_status" -ne 0 ]]; then
+        local timestamp=$(date +"%Y%m%d%H%M%S")
+        local failed_backup_filename="${CONFIG_FILE}.bak_FAILED_${timestamp}"
+        if [[ -f "${CONFIG_FILE}.bak" ]]; then
+            mv "${CONFIG_FILE}.bak" "$failed_backup_filename"
+            echo -e "${R1}Backup kegagalan disimpan sebagai: $failed_backup_filename${Suffix}"
+        fi
+    fi
+
+    read -n 1 -s -r -p "Tekan apa saja untuk kembali ke menu setting"
+    m-setting
+}
+
+backup_config_file
+main_change_user_id

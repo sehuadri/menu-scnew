@@ -1,0 +1,109 @@
+#!/bin/bash
+clear
+BIYellow='\033[1;93m'     # Yellow
+BICyan='\033[1;96m'       # Cyan
+BIWhite='\033[1;97m'      # White
+BILime='\e[38;5;155m'
+BGreen='\e[1;32m'
+NC='\e[0m'
+
+iptables -I INPUT -p udp --dport 5300 -j ACCEPT
+iptables -t nat -I PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 5300
+netfilter-persistent save
+netfilter-persistent reload
+
+cd
+
+rm -rf /root/nsdomain
+rm nsdomain
+
+clear
+echo -e "\033[1;97mMasukkan Sub Domain Anda Saat Ini \e[0m"
+read -rp "Enter Your Current Sub Domain: " -e sub
+SUB_DOMAIN=${sub}
+NS_DOMAIN=ns-${SUB_DOMAIN}
+echo $NS_DOMAIN > /root/nsdomain
+
+nameserver=$(cat /root/nsdomain)
+domen=$(cat /etc/xray/domain)
+
+bahan() {
+    apt update -y
+    apt install -y python3 python3-dnslib net-tools
+    apt install ncurses-utils -y
+    apt install dnsutils -y
+    apt install git -y
+    apt install curl -y
+    apt install wget -y
+    apt install ncurses-utils -y
+    apt install screen -y
+    apt install cron -y
+    apt install iptables -y
+    apt install -y git screen whois dropbear wget
+    apt install -y sudo gnutls-bin
+    apt install -y dos2unix debconf-utils
+    service cron reload
+    service cron restart
+
+}
+
+bahan
+
+cd
+echo "Port 2222" >> /etc/ssh/sshd_config
+echo "Port 2269" >> /etc/ssh/sshd_config
+sed -i 's/#AllowTcpForwarding yes/AllowTcpForwarding yes/g' /etc/ssh/sshd_config
+service ssh restart
+service sshd restart
+
+
+rm -rf /etc/slowdns
+mkdir -m 777 /etc/slowdns
+wget -q -O /etc/slowdns/server.key "https://raw.githubusercontent.com/sehuadri/project/main/slowdns/server.key"
+wget -q -O /etc/slowdns/server.pub "https://raw.githubusercontent.com/sehuadri/project/main/slowdns/server.pub"
+wget -q -O /etc/slowdns/sldns-server "https://raw.githubusercontent.com/sehuadri/project/main/slowdns/sldns-server"
+cd
+chmod +x /etc/slowdns/server.key
+chmod +x /etc/slowdns/server.pub
+chmod +x /etc/slowdns/sldns-server
+cd
+
+cat > /etc/systemd/system/server-sldns.service << END
+[Unit]
+Description=Server SlowDNS By LITE
+Documentation=https://one.one.one.one
+After=network.target nss-lookup.target
+
+[Service]
+Type=simple
+User=root
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
+AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
+NoNewPrivileges=true
+ExecStart=/etc/slowdns/sldns-server -udp :5300 -privkey-file /etc/slowdns/server.key $nameserver 127.0.0.1:2269
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+END
+
+
+cd
+chmod +x /etc/systemd/system/client-sldns.service
+
+chmod +x /etc/systemd/system/server-sldns.service
+pkill sldns-server
+
+systemctl daemon-reload
+systemctl stop server-sldns
+systemctl enable server-sldns
+systemctl start server-sldns
+systemctl restart server-sldns
+
+clear
+echo -e "${BILime}Successfully Installation Slowdns ${NC}"
+echo -e "${BIWhite}Please Pointing Type NS${NC} ${BIYellow}$nameserver${NC}"
+echo -e "${BIWhite}With Target${NC} ${BIYellow}$domen${NC}"
+sleep 1
+read -n 1 -s -r -p "Press [ Enter ] to kembali ke menu"
+m-slowdns

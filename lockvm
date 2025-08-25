@@ -1,0 +1,150 @@
+#!/bin/bash
+clear
+BIYellow='\033[1;93m'   
+BICyan='\033[1;96m'
+BIWhite='\033[1;97m'     
+BILime='\e[38;5;155m'
+RED='\033[0;31m'
+NC='\e[0m'
+LOCK_FILE="/etc/user_locks.db"
+XRAY_CONFIG="/etc/xray/config.json"
+BACKUP_DIR="/etc/xray/backups"
+
+# Create lock file if it doesn't exist
+[[ ! -f $LOCK_FILE ]] && touch $LOCK_FILE
+
+# Create backup directory if it doesn't exist
+[[ ! -d $BACKUP_DIR ]] && mkdir -p $BACKUP_DIR
+
+# Function to reload services
+reload_services() {
+    systemctl restart xray >/dev/null 2>&1
+    echo -e "${BIYellow}Xray service has been reloaded.${NC}"
+    read -n 1 -s -r -p "Press any key to back on menu"
+    m-vmess
+}
+
+# Function to modify Xray configuration file for vmess
+modify_xray_config() {
+    local action="$1"
+    local user="$2"
+    local protocol="vmess"
+    local marker="### $user"
+
+    if [[ $action == "lock" ]]; then
+        # Backup configuration file
+        cp $XRAY_CONFIG "$BACKUP_DIR/config.json.bak"
+        # Remove user entry from configuration
+        sed -i "/^${marker}/,/^},{/d" $XRAY_CONFIG
+        echo -e "${BIYellow}User '${user}' on protocol '${protocol}' has been locked.${NC}"
+    elif [[ $action == "unlock" ]]; then
+        # Restore from backup if it exists
+        if [[ -f "$BACKUP_DIR/config.json.bak" ]]; then
+            cp "$BACKUP_DIR/config.json.bak" $XRAY_CONFIG
+            echo -e "${BIYellow}User '${user}' on protocol '${protocol}' has been restored from the backup.${NC}"
+        else
+            echo -e "${BIWhite}Backup not found! Failed to unlock user '${user}'.${NC}"
+        fi
+    fi
+}
+
+# Lock a user for vmess
+lock_user() {
+    echo -e "${BIYellow}---------------------------------------------${NC}"
+    echo -e "${BIWhite}LOCK VMESS ACCOUNT${NC}"
+    echo -e "${BIYellow}---------------------------------------------${NC}"
+
+    # Ambil semua user aktif dari config.json
+    mapfile -t all_users < <(grep -E "^### " "$XRAY_CONFIG" | cut -d ' ' -f 2 | sort | uniq)
+
+    # Ambil user yang sudah dikunci
+    mapfile -t locked_users < <(grep "^vmess:" "$LOCK_FILE" | cut -d ':' -f2)
+
+    # Buat array user yang belum dikunci
+    available_users=()
+    for user in "${all_users[@]}"; do
+        if [[ ! " ${locked_users[*]} " =~ " ${user} " ]]; then
+            available_users+=("$user")
+        fi
+    done
+
+    # Cek jika tidak ada user yang bisa dikunci
+    if [[ ${#available_users[@]} -eq 0 ]]; then
+        echo -e "${RED}Tidak Ada User Aktif Yang Di Temukan${NC}"
+        read -n 1 -s -r -p "Tekan tombol apapun untuk kembali ke menu"
+        m-vmess
+        return
+    fi
+
+    # Tampilkan user yang bisa dikunci
+    for i in "${!available_users[@]}"; do
+        echo -e "${BILime}$((i+1)). ${available_users[$i]}${NC}"
+    done
+
+    echo -e "${BIYellow}---------------------------------------------${NC}"
+    read -p "Pilih nomor user yang ingin dikunci: " selected
+
+    # Validasi input
+    if ! [[ "$selected" =~ ^[0-9]+$ ]] || (( selected < 1 || selected > ${#available_users[@]} )); then
+        echo -e "${RED}Pilihan tidak valid.${NC}"
+        return
+    fi
+
+    # Ambil username berdasarkan input
+    user="${available_users[$((selected-1))]}"
+
+    # Tambahkan ke LOCK_FILE
+    echo "vmess:${user}" >> "$LOCK_FILE"
+
+    # Modifikasi config
+    modify_xray_config "lock" "$user"
+
+    # Reload Xray
+    reload_services
+}
+
+# Unlock a user for vmess
+unlock_user() {
+    echo -e "${BIYellow}---------------------------------------------${NC}"
+    echo -e "${BIWhite}UNLOCK VMESS ACCOUNT${NC}"
+    echo -e "${BIYellow}---------------------------------------------${NC}"
+
+    # Ambil daftar user yang terkunci dari LOCK_FILE
+    mapfile -t locked_users < <(grep "^vmess:" "$LOCK_FILE" | cut -d':' -f2)
+
+    # Cek apakah ada user yang terkunci
+    if [[ ${#locked_users[@]} -eq 0 ]]; then
+        echo -e "${RED}Tidak ada user yang sedang dikunci.${NC}"
+        read -n 1 -s -r -p "Tekan tombol apapun untuk kembali ke menu"
+        m-vmess
+        return
+    fi
+
+    # Tampilkan user dengan nomor
+    for i in "${!locked_users[@]}"; do
+        echo -e "${BILime}$((i+1)). ${locked_users[$i]}${NC}"
+    done
+
+    echo -e "${BIYellow}---------------------------------------------${NC}"
+    read -p "Pilih nomor user yang ingin di-unlock: " selected
+
+    # Validasi input
+    if ! [[ "$selected" =~ ^[0-9]+$ ]] || (( selected < 1 || selected > ${#locked_users[@]} )); then
+        echo -e "${RED}Pilihan tidak valid.${NC}"
+        return
+    fi
+
+    # Ambil username dari pilihan
+    user="${locked_users[$((selected-1))]}"
+
+    # Hapus dari LOCK_FILE
+    sed -i "/^vmess:${user}$/d" "$LOCK_FILE"
+
+    # Unlock di config
+    modify_xray_config "unlock" "$user"
+
+    # Reload Xray
+    reload_services
+}
+
+lock_user

@@ -1,0 +1,62 @@
+#!/bin/bash
+clear
+greenBe="\033[5;32m"
+# Mendapatkan tanggal dari server Google
+dateFromServer=$(curl -sI --insecure https://google.com/ | grep -i '^date:' | sed -e 's/Date: //')
+biji=$(date +"%Y-%m-%d" -d "$dateFromServer")
+
+# Fungsi untuk mencetak teks berwarna merah
+red() { 
+    echo -e "\\033[91;1m${*}\\033[0m"
+}
+
+clear
+
+# Fungsi untuk loading
+fun_bar() {
+    CMD[0]="$1"
+    CMD[1]="$2"
+    (
+        [[ -e $HOME/fim ]] && rm $HOME/fim
+        ${CMD[0]} -y >/dev/null 2>&1
+        ${CMD[1]} -y >/dev/null 2>&1
+        touch $HOME/fim
+    ) >/dev/null 2>&1 &
+    tput civis
+    echo -ne "\033[0;33mPlease Wait Loading \033[1;37m- \033[0;33m["
+    while true; do
+        for ((i = 0; i < 15; i++)); do
+            echo -ne "\033[0;32m#"
+            sleep 0.1s
+        done
+        [[ -e $HOME/fim ]] && rm $HOME/fim && break
+        echo -e "\033[0;33m]"
+        sleep 1s
+        tput cuu1
+        tput dl1
+        echo -ne "\033[0;33mPlease Wait Loading \033[1;37m- \033[0;33m["
+    done
+    echo -e "\033[0;33m]\033[1;37m -\033[1;32m OK !\033[1;37m"
+    tput cnorm
+}
+
+echo -e "\e[91;1mDelete Bot\e[0m"
+sleep 2
+fun_bar
+
+# Hapus file di direktori /root
+systemctl stop private
+
+rm -rf /root/private.sh
+
+# Hapus file di /usr/bin
+cd /usr/bin || exit
+rm -rf private private2 private3 private4 private5 private.zip private.zip.1 private.zip.2 private.zip.3 private.zip.4 private.zip.5 private2.zip private2.zip.1 private2.zip.2 private2.zip.3 private3.zip private3.zip.1 private3.zip.2 private3.zip.3 bot bot2 bot3 bot4 bot5 bot.zip bot.zip.1 bot.zip.2 bot.zip.3 bot.zip.4 bot.zip.5 bot-backup bot-cek-login-ssh bot-cek-ss \
+       bot-cek-tr bot-cek-vless bot-cek-ws bot-member-ssh setting.py \
+       bot-restore bot-vps-info
+       sleep 1
+
+echo -e "\e[5;32mSuccessfully Delete Bot Private\e[0m"
+sleep 1
+read -n 1 -s -r -p "Press [ Enter ] to back on menu"
+m-private

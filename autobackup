@@ -1,0 +1,98 @@
+#!/bin/bash
+clear
+BIYellow='\033[1;93m'
+BICyan='\033[1;96m'
+BIWhite='\033[1;97m'
+BIYellow='\033[1;93m'
+IGreen='\033[0;92m'
+RED='\033[0;31m'
+NC='\033[0m'
+GREEN='\033[0;32m'
+ORANGE='\033[0;33m'
+CYAN='\033[0;36m'
+clear
+IP=$(wget -qO- ipinfo.io/ip)
+date=$(date +"%Y-%m-%d")
+Green_font_prefix="\033[32m" && Red_font_prefix="\033[31m" && Font_color_suffix="\033[0m"
+Info="${Green_font_prefix}[ON]${Font_color_suffix}"
+Error="${Red_font_prefix}[OFF]${Font_color_suffix}"
+
+cek=$(crontab -l 2>/dev/null | grep -c "/usr/local/sbin/bckup-ku")
+
+if [[ "$cek" = "1" ]]; then
+    sts="${Info}"
+else
+    sts="${Error}"
+fi
+
+function start() {
+    
+    if [[ "$cek" = "0" ]]; then
+        (crontab -l 2>/dev/null; echo "0 */5 * * * /usr/local/sbin/bckup-ku") | crontab -
+        echo -e "${IGreen}Autobackup has been started.${NC}"
+        echo -e "${BIWhite}Data akan dibackup otomatis setiap 5 jam sekali (GMT +7).${NC}"
+        sleep 3
+    else
+        echo -e "${ORANGE}Autobackup sudah di aktifkan.${NC}"
+    fi
+    sleep 1
+    autobackup
+}
+
+function stop() {
+    
+    if [[ "$cek" = "1" ]]; then
+        crontab -l 2>/dev/null | grep -v "/usr/local/sbin/bckup-ku" | crontab -
+        echo -e "${RED}Autobackup Sudah di hentikan.${NC}"
+    else
+        echo -e "${ORANGE}Autobackup sudah tidak aktif.${NC}"
+    fi
+    sleep 1
+    autobackup
+}
+
+setupbot() {
+    clear
+    echo -e "${BIWhite}──────────────────────────${NC}"
+    echo -e "${BIYellow}AUTOBACKUP BOT SETUP MANAGER${NC}"
+    echo -e "${BIWhite}──────────────────────────${NC}"
+    switch=$(grep -i "switch" /root/.bckupbot | awk '{print $2}' 2>/dev/null)
+    echo "Pergi ke @BotFather dan type /newbot untuk membuat bot baru"
+    echo "Pergi ke @MissRose_bot dan type /id untuk mendapatkan ID telegram"
+    echo ""
+    read -p "Bot Token : " getToken
+    read -p "Admin ID  : " adminID
+    echo "$getToken" >/root/.bckupbot
+    echo "$adminID" >>/root/.bckupbot
+    echo "switch $switch" >>/root/.bckupbot
+    echo ""
+    echo -e "${BIWhite}Pengaturan Bot Berhasil di simpan.${NC}"
+    read -n 1 -s -r -p "Press any key to back"
+    autobackup
+}
+
+clear
+echo -e "${BIWhite}──────────────────────────────────────${NC}"
+echo -e "${BIYellow}AUTOBACKUP MANAGER${NC}"
+echo -e "${BIWhite}──────────────────────────────────────${NC}"
+echo -e "${BIWhite}Status Autobackup Data :${NC} $sts"
+echo -e "${IGreen}[${BIWhite}01${IGreen}] ${NC}${BIWhite}Start Autobackup${NC}"
+echo -e "${IGreen}[${BIWhite}02${IGreen}] ${NC}${BIWhite}Stop Autobackup${NC}"
+echo -e "${IGreen}[${BIWhite}03${IGreen}] ${NC}${BIWhite}Setup Bot Notifikasi${NC}"
+echo -e "${BIYellow}Note: ${NC}"
+echo -e "${BIWhite}Atur Bot Notifikasi Terlebih Dahulu${NC}"
+echo -e "${BIWhite}Untuk Menerima Link Backup${NC}"
+echo -e "${BIWhite}──────────────────────────────────────${NC}"
+echo -e "${BIYellow}Input x or [ Ctrl+C ] » To-${BIWhite}Exit${NC}"
+echo -e "${BIWhite}──────────────────────────────────────${NC}"
+echo ""
+read -rp "Select menu :" -e opt
+echo -e ""
+case $opt in
+1) clear ; start ;;
+2) clear ; stop ;;
+3) clear ; setupbot ;;
+0) clear ; menu ; exit ;;
+x) menu ;;
+*) echo "anda salah tekan" ; sleep 1 ; autobackup ;;
+esac

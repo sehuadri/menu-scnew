@@ -1,0 +1,108 @@
+#!/bin/bash
+clear
+PERMISSION() {
+    MYIP=$(curl -sS ipv4.icanhazip.com)
+
+    TODAY_DATE=$(date +'%Y-%m-%d')
+
+    AUTHORIZED_ENTRY=$(curl -sS https://raw.githubusercontent.com/sehuadri/project/main/ip-bot | grep -w "$MYIP" | head -1)
+
+    if [[ -n "$AUTHORIZED_ENTRY" ]]; then
+        # IP_FROM_ENTRY sekarang adalah field ke-4
+        IP_FROM_ENTRY=$(echo "$AUTHORIZED_ENTRY" | awk '{print $4}')
+        # EXP_DATE_OR_LIFETIME_STATUS sekarang adalah field ke-3
+        EXP_DATE_OR_LIFETIME_STATUS=$(echo "$AUTHORIZED_ENTRY" | awk '{print $3}') 
+
+        if [ "$MYIP" = "$IP_FROM_ENTRY" ]; then
+            # Cek apakah statusnya 'lifetime'
+            if [[ "$EXP_DATE_OR_LIFETIME_STATUS" == "lifetime" ]]; then
+                echo -e "\033[1;92mPermission Accepted (Lifetime User)\033[0m"
+                echo -e "\033[1;97mAkses Di Izinkan (Pengguna Lifetime)${NC}"
+            # Jika bukan 'lifetime', baru lakukan perbandingan tanggal
+            elif [[ "$TODAY_DATE" < "$EXP_DATE_OR_LIFETIME_STATUS" ]]; then
+                echo -e "\033[1;92mPermission Accepted\033[0m"
+                echo -e "\033[1;97mAkses Di Izinkan${NC}"
+            elif [[ "$TODAY_DATE" == "$EXP_DATE_OR_LIFETIME_STATUS" ]]; then
+                echo -e "\033[1;93mPermission Accepted (Today is Expiry Date)\033[0m"
+                echo -e "\033[1;97mAkses Di Izinkan (Hari Ini Kadaluarsa)${NC}"
+            else
+                echo -e "\033[1;91mPermission Denied (Expired)\033[0m"
+                echo -e "\033[1;97mAkses Di Tolak (Kadaluarsa)${NC}"
+                read -n 1 -s -r -p "Press [ Enter ] to Exit"
+                exit 1
+            fi
+        else
+            echo -e "\033[1;91mPermission Denied (IP Mismatch)\033[0m"
+            echo -e "\033[1;97mAkses Di Tolak (IP Tidak Cocok)${NC}"
+            read -n 1 -s -r -p "Press [ Enter ] to Exit"
+            exit 1
+        fi
+    else
+        echo -e "\033[1;91mPermission Denied (IP Not Found)\033[0m"
+        echo -e "\033[1;97mAkses Di Tolak (IP Tidak Ditemukan)${NC}"
+        read -n 1 -s -r -p "Press [ Enter ] to Exit"
+        exit 1
+    fi
+}
+
+PERMISSION
+clear
+greenBe="\033[5;32m"
+cd /etc/systemd/system/
+rm -rf vermilion.service
+cd
+grenbo="\e[92;1m"
+NC='\e[0m'
+
+cd /usr/bin
+rm -rf vermilion
+rm -rf vermilion.zip
+sudo apt update
+sudo apt install pip
+apt install unzip
+apt install neofetch -y
+cd /usr/bin
+wget https://raw.githubusercontent.com/sehuadri/project/main/bot/vermilion.zip
+unzip -P miqdad12 vermilion.zip
+chmod +x /usr/bin/vermilion/*
+rm -rf vermilion.zip
+clear
+pip3 install python-telegram-bot==13.7
+pip3 install requests
+clear
+cd
+
+echo ""
+echo -e "\033[97m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+echo -e "\033[1;93mADD BOT REGIS IP\033[0m"
+echo -e "\033[97m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+read -e -p "Masukkan ID Telegram :" admin
+echo -e ''$admin'' >> /usr/bin/vermilion/lite.txt
+echo -e "\033[97m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+clear
+
+cat > /etc/systemd/system/vermilion.service << END
+[Unit]
+Description=Simple vermilion - @vermilion
+After=network.target
+
+[Service]
+WorkingDirectory=/usr/bin/vermilion
+ExecStart=/usr/bin/python3  daftarip.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+END
+
+systemctl start vermilion 
+systemctl enable vermilion
+systemctl restart vermilion
+cd /root
+rm -rf bot.sh
+rm -rf bot.sh.1
+clear
+echo -e "\e[5;32mSuccessfully Install Bot Regis IP, type /start on your bot \e[0m"
+sleep 1
+read -n 1 -s -r -p "Press [ Enter ] to back on menu"
+m-regis

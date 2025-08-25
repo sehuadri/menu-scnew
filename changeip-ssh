@@ -1,0 +1,66 @@
+#!/bin/bash
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+YELLOW='\033[1;33m'
+RESET='\033[0m'
+
+# Header tabel
+echo -e "${CYAN}---------------------------------------------${RESET}"
+echo -e "${YELLOW}   USERNAME       EXP DATE         STATUS${RESET}"
+echo -e "${CYAN}---------------------------------------------${RESET}"
+
+# Loop membaca data dari /etc/passwd
+while read expired; do
+    AKUN="$(echo $expired | cut -d: -f1)"
+    ID="$(echo $expired | grep -v nobody | cut -d: -f3)"
+    exp="$(chage -l $AKUN | grep "Account expires" | awk -F": " '{print $2}')"
+    status="$(passwd -S $AKUN | awk '{print $2}')"
+    if [[ $ID -ge 1000 ]]; then
+        if [[ "$status" = "L" ]]; then
+            printf "${RED}%-17s %-17s %s${RESET}\n" "$AKUN" "$exp" "LOCKED"
+        else
+            printf "${GREEN}%-17s %-17s %s${RESET}\n" "$AKUN" "$exp" "UNLOCKED"
+        fi
+    fi
+done < /etc/passwd
+
+# Footer tabel
+JUMLAH="$(awk -F: '$3 >= 1000 && $1 != "nobody" {print $1}' /etc/passwd | wc -l)"
+echo -e "${CYAN}---------------------------------------------${RESET}"
+echo -e "${YELLOW}   Account number: ${GREEN}$JUMLAH user(s)${RESET}"
+echo -e "${CYAN}---------------------------------------------${RESET}"
+echo ""
+
+# Input pengguna
+read -p "Input username: " user
+limit_file="/etc/limit/ssh/ip/$user"
+
+# Cek file limit
+if [ -e "$limit_file" ]; then
+    current_iplimit=$(cat "$limit_file")
+    echo -e "${CYAN}---------------------------------------------${RESET}"
+    echo -e "${YELLOW}Before${RESET}"
+    echo -e "${BLUE}Username   : ${GREEN}$user${RESET}"
+    echo -e "${BLUE}IP Limit   : ${GREEN}$current_iplimit${RESET}"
+    echo -e "${CYAN}---------------------------------------------${RESET}"
+    read -p "Input new IP limit: " new_iplimit
+    if [ -z "$new_iplimit" ]; then
+        echo -e "${RED}Invalid input. No changes made.${RESET}"
+    else
+        echo "$new_iplimit" > "$limit_file"
+        echo -e "${CYAN}---------------------------------------------${RESET}"
+        echo -e "${GREEN}Successfully updated.${RESET}"
+        echo -e "${BLUE}Username   : ${GREEN}$user${RESET}"
+        echo -e "${BLUE}New IP Limit : ${GREEN}$new_iplimit${RESET}"
+        echo -e "${CYAN}---------------------------------------------${RESET}"
+    fi
+else
+    echo -e "${CYAN}---------------------------------------------${RESET}"
+    echo -e "${RED}Error: Limit file not found for username ${YELLOW}$user${RED}.${RESET}"
+    echo -e "${CYAN}---------------------------------------------${RESET}"
+fi
+
+read -n 1 -s -r -p "Press any key to back on menu"
+m-ssh

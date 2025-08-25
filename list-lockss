@@ -1,0 +1,28 @@
+#!/bin/bash
+clear
+BIYellow='\033[1;93m'   
+BICyan='\033[1;96m'
+BIWhite='\033[1;97m'     
+BILime='\e[38;5;155m'
+RED='\033[0;31m'  # Warna merah untuk pesan error
+NC='\e[0m'        # Reset warna
+
+# File dan Direktori
+LOCK_FILE="/etc/user_locks.db"
+
+# Periksa apakah LOCK_FILE ada
+if [[ ! -f "$LOCK_FILE" ]]; then
+  echo -e "${RED}Error: File ${LOCK_FILE} tidak ditemukan!${NC}"
+  read -n 1 -s -r -p "Press any key to back on menu"
+  m-shadowsocks
+fi
+
+# Tampilkan daftar pengguna yang terkunci
+echo -e "${BIWhite}Daftar pengguna yang terkunci:${NC}"
+grep "^shadowsocks:" "$LOCK_FILE" | awk -F: '{print $2}' | while read -r user; do
+  if [[ -n "$user" ]]; then
+    echo -e "${BIYellow}- ${user}${NC}"
+  fi
+done
+read -n 1 -s -r -p "Press any key to back on menu"
+m-shadowsocks

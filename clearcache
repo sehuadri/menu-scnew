@@ -1,0 +1,18 @@
+#!/bin/bash
+clear
+# Mengambil informasi dari file konfigurasi
+CHATID=$(grep -E "^#bot# " "/etc/bot/.bot.db" | cut -d ' ' -f 3)
+KEY=$(grep -E "^#bot# " "/etc/bot/.bot.db" | cut -d ' ' -f 2)
+export TIME="10"
+export URL="https://api.telegram.org/bot$KEY/sendMessage"
+echo "Checking VPS"
+clear
+echo ""
+echo -e "[ \033[32mInfo\033[0m ] Clearing RAM Cache..."
+echo 1 > /proc/sys/vm/drop_caches
+sleep 3
+echo -e "[ \033[32mOK\033[0m ] Cache cleared"
+echo ""
+echo -e "\033[1;92mBack to menu in 2 seconds...\033[0m"
+sleep 2
+menu

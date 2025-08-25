@@ -1,0 +1,82 @@
+#!/bin/bash
+BIWhite='\033[1;97m'
+BIYellow='\033[1;93m'
+NC='\033[0m'
+clear
+function loading() {
+  clear
+  local pid=$1
+  local delay=0.1
+  local spin='-\|/'
+
+  while ps -p $pid > /dev/null; do
+    local temp=${spin#?}
+    printf "[%c] " "$spin"
+    local spin=$temp${spin%"$temp"}
+    sleep $delay
+    printf "\b\b\b\b\b\b"
+  done
+
+  printf "    \b\b\b\b"
+}
+
+cd
+rm -rf /root/udp
+mkdir -p /root/udp
+
+echo -e "${BIWhite}change to time GMT+7${NC}"
+ln -fs /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
+
+# install udp-custom
+sleep 1
+echo -e "${BIWhite}downloading udp-custom${NC}"
+wget -q --show-progress --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1ixz82G_ruRBnEEp4vLPNF2KZ1k8UfrkV' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1ixz82G_ruRBnEEp4vLPNF2KZ1k8UfrkV" -O /root/udp/udp-custom && rm -rf /tmp/cookies.txt
+chmod +x /root/udp/udp-custom
+sleep 1
+echo -e "${BIWhite}downloading default config${NC}"
+wget -q --show-progress --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1klXTiKGUd2Cs5cBnH3eK2Q1w50Yx3jbf' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1klXTiKGUd2Cs5cBnH3eK2Q1w50Yx3jbf" -O /root/udp/config.json && rm -rf /tmp/cookies.txt
+chmod 644 /root/udp/config.json
+
+if [ -z "$1" ]; then
+cat <<EOF > /etc/systemd/system/udp-custom.service
+[Unit]
+Description=UDP CUSTOM BY LITE
+
+[Service]
+User=root
+Type=simple
+ExecStart=/root/udp/udp-custom server
+WorkingDirectory=/root/udp/
+Restart=always
+RestartSec=2s
+
+[Install]
+WantedBy=default.target
+EOF
+else
+cat <<EOF > /etc/systemd/system/udp-custom.service
+[Unit]
+Description=UDP CUSTOM BY LITE
+
+[Service]
+User=root
+Type=simple
+ExecStart=/root/udp/udp-custom server -exclude $1
+WorkingDirectory=/root/udp/
+Restart=always
+RestartSec=2s
+
+[Install]
+WantedBy=default.target
+EOF
+fi
+
+echo -e "${BIWhite}start service udp-custom${NC}"
+systemctl start udp-custom &>/dev/null
+sleep 1
+echo -e "${BIWhite}enable service udp-custom${NC}"
+systemctl enable udp-custom &>/dev/null
+sleep 3 & loading $!
+echo -e "${BIWhite}Successfully Installed UDP Custom${NC}"
+# read -n 1 -s -r -p "Press [ Enter ] to kembali ke menu"
+# menu

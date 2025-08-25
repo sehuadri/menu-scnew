@@ -1,0 +1,48 @@
+#!/bin/bash
+clear
+BIYellow='\033[1;93m'
+BICyan='\033[1;96m'
+BIWhite='\033[1;97m'
+DF='\e[39m'
+Bold='\e[1m'
+Blink='\e[5m'
+yell='\e[33m'
+red='\e[31m'
+green='\e[32m'
+blue='\e[34m'
+PURPLE='\e[35m'
+cyan='\e[36m'
+Lred='\e[91m'
+Lgreen='\e[92m'
+yellow='\e[93m'
+NC='\e[0m'
+GREEN='\033[0;32m'
+ORANGE='\033[0;33m'
+LIGHT='\033[0;37m'
+grenbo="\e[92;1m"
+REPO="https://raw.githubusercontent.com/sehuadri/project/main/config/"
+clear
+echo -e "${BIWhite}──────────────────────────────────────${NC}"
+echo -e "${BIYellow}FIX NGINX & HAPROXY OFF${NC}"
+echo -e "${BIWhite}──────────────────────────────────────${NC}"
+echo -e ""
+read -p "Input Your Domain : " -e domain
+echo -e "${BIWhite}Loading...${NC}"
+sleep 2
+rm -fr /etc/xray/domain
+echo "${domain}" > /etc/xray/domain
+
+systemctl stop nginx
+
+wget -O /etc/nginx/conf.d/xray.conf "${REPO}xray.conf" >/dev/null 2>&1
+
+curl -s "${REPO}nginx.conf" > /etc/nginx/nginx.conf
+sed -i "s/xxx/${domain}/g" /etc/nginx/conf.d/xray.conf
+
+systemctl restart nginx
+install-haproxy
+
+echo -e "${green}Configuration updated and services restarted successfully.${NC}"
+echo -e ""
+read -n 1 -s -r -p "Press [ Enter ] to back on menu"
+menu

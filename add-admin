@@ -1,0 +1,92 @@
+#!/bin/bash
+clear
+PERMISSION() {
+    MYIP=$(curl -sS ipv4.icanhazip.com)
+
+    TODAY_DATE=$(date +'%Y-%m-%d')
+
+    AUTHORIZED_ENTRY=$(curl -sS https://raw.githubusercontent.com/sehuadri/project/main/ip-bot | grep -w "$MYIP" | head -1)
+
+    if [[ -n "$AUTHORIZED_ENTRY" ]]; then
+        # IP_FROM_ENTRY sekarang adalah field ke-4
+        IP_FROM_ENTRY=$(echo "$AUTHORIZED_ENTRY" | awk '{print $4}')
+        # EXP_DATE_OR_LIFETIME_STATUS sekarang adalah field ke-3
+        EXP_DATE_OR_LIFETIME_STATUS=$(echo "$AUTHORIZED_ENTRY" | awk '{print $3}') 
+
+        if [ "$MYIP" = "$IP_FROM_ENTRY" ]; then
+            # Cek apakah statusnya 'lifetime'
+            if [[ "$EXP_DATE_OR_LIFETIME_STATUS" == "lifetime" ]]; then
+                echo -e "\033[1;92mPermission Accepted (Lifetime User)\033[0m"
+                echo -e "\033[1;97mAkses Di Izinkan (Pengguna Lifetime)${NC}"
+            # Jika bukan 'lifetime', baru lakukan perbandingan tanggal
+            elif [[ "$TODAY_DATE" < "$EXP_DATE_OR_LIFETIME_STATUS" ]]; then
+                echo -e "\033[1;92mPermission Accepted\033[0m"
+                echo -e "\033[1;97mAkses Di Izinkan${NC}"
+            elif [[ "$TODAY_DATE" == "$EXP_DATE_OR_LIFETIME_STATUS" ]]; then
+                echo -e "\033[1;93mPermission Accepted (Today is Expiry Date)\033[0m"
+                echo -e "\033[1;97mAkses Di Izinkan (Hari Ini Kadaluarsa)${NC}"
+            else
+                echo -e "\033[1;91mPermission Denied (Expired)\033[0m"
+                echo -e "\033[1;97mAkses Di Tolak (Kadaluarsa)${NC}"
+                read -n 1 -s -r -p "Press [ Enter ] to Exit"
+                exit 1
+            fi
+        else
+            echo -e "\033[1;91mPermission Denied (IP Mismatch)\033[0m"
+            echo -e "\033[1;97mAkses Di Tolak (IP Tidak Cocok)${NC}"
+            read -n 1 -s -r -p "Press [ Enter ] to Exit"
+            exit 1
+        fi
+    else
+        echo -e "\033[1;91mPermission Denied (IP Not Found)\033[0m"
+        echo -e "\033[1;97mAkses Di Tolak (IP Tidak Ditemukan)${NC}"
+        read -n 1 -s -r -p "Press [ Enter ] to Exit"
+        exit 1
+    fi
+}
+
+
+PERMISSION
+clear
+BIGreen='\033[1;92m' # Hijau terang (bold)
+BIWhite='\033[1;97m' # Putih terang (bold)
+NC='\033[0m'         # Reset warna
+
+# Path ke file admin
+ADMIN_FILE="/usr/bin/vermilion/lite.txt"
+
+# Pastikan file ada, jika tidak buat file kosong (dengan devnull untuk suppress error)
+[ -f "$ADMIN_FILE" ] || touch "$ADMIN_FILE" 2>/dev/null
+
+clear
+echo -e "${BIGreen}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${BIWhite}           ADD ADMIN BOT REGIS          ${NC}"
+echo -e "${BIGreen}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo ""
+
+# Minta input ID admin baru
+read -p "Input ID Telegram: " ADMIN_ID
+
+# Pastikan input hanya angka
+if [[ ! "$ADMIN_ID" =~ ^[0-9]+$ ]]; then
+    echo -e "${BIGreen}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BIWhite}Error: ID harus berupa angka!${NC}"
+    echo -e "${BIGreen}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    read -n 1 -s -r -p "Press [ Enter ] to back on menu"
+    m-regis
+fi
+
+# Cek apakah ID sudah ada dalam daftar (dengan devnull untuk suppress error)
+if grep -Fxq "$ADMIN_ID" "$ADMIN_FILE" 2>/dev/null; then
+    echo -e "${BIGreen}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BIWhite}ID $ADMIN_ID sudah terdaftar sebagai admin!${NC}"
+    echo -e "${BIGreen}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+else
+    echo "$ADMIN_ID" >> "$ADMIN_FILE" 2>/dev/null
+    echo -e "${BIGreen}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BIWhite}ID $ADMIN_ID berhasil ditambahkan sebagai admin!${NC}"
+    echo -e "${BIGreen}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+fi
+
+read -n 1 -s -r -p "Press [ Enter ] to back on menu"
+m-regis

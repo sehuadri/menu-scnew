@@ -1,0 +1,29 @@
+#!/bin/bash
+clear
+red='\e[1;31m'
+green='\033[1;97m'
+blue='\033[1;96m'
+yellow='\033[1;93m'
+NC='\e[0m'
+clear
+echo -e "${yellow}---------------------------------------------${NC}"
+echo -e "          DAFTAR USER SSH YANG DIKUNCI"
+echo -e "${yellow}---------------------------------------------${NC}"
+echo "USERNAME          EXP DATE"
+echo -e "${yellow}---------------------------------------------${NC}"
+# Membaca pengguna dari /etc/passwd
+while read -r user_entry; do
+  AKUN="$(echo "$user_entry" | cut -d: -f1)"  # Nama pengguna
+  ID="$(echo "$user_entry" | grep -v nobody | cut -d: -f3)"  # ID pengguna
+  exp="$(chage -l "$AKUN" 2>/dev/null | grep "Account expires" | awk -F": " '{print $2}')"  # Tanggal expired
+  status="$(passwd -S "$AKUN" 2>/dev/null | awk '{print $2}')"  # Status akun
+
+  # Menampilkan pengguna yang statusnya LOCKED
+  if [[ "$ID" -ge 1000 && "$status" == "L" ]]; then
+    printf "%-17s %-17s\n" "$AKUN" "$exp"
+  fi
+done < /etc/passwd
+
+echo -e "${yellow}---------------------------------------------${NC}"
+read -n 1 -s -r -p "Press any key to back on menu"
+m-ssh

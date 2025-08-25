@@ -1,0 +1,114 @@
+#!/bin/bash
+backup_to_google_drive() {
+    local RED='\033[0;31m'
+    local NC='\033[0m'
+    local GREEN="\e[92;1m"
+    local BLUE="\033[36m"
+    local BIWhite='\033[1;97m'
+
+    local IP=$(curl -s ipv4.icanhazip.com)
+    local HOST="$(cat /etc/xray/domain)"
+    local DATEVPS=$(date +"%d-%B-%Y")
+    local ISPVPS=$(cat /etc/xray/isp)
+    local CITY=$(cat /etc/xray/city)
+
+    function kirim_link() {
+        local backup_link="$1"
+        local getToken=""
+        local adminID=""
+
+        if [[ -z "$getToken" || -z "$adminID" ]]; then
+            getToken=$(sed -n 1p /root/.bckupbot)
+            adminID=$(sed -n 2p /root/.bckupbot)
+        fi
+
+        local CHATID="$adminID"
+        local KEY="$getToken"
+        local TIME="10"
+        local URL="https://api.telegram.org/bot$KEY/sendMessage"
+
+        local TEXT="
+<b>==============================</b>
+<b>✅ BACKUP VPS</b>
+<b>==============================</b>
+<b>📆 Date     :</b> <code>$DATEVPS</code>
+<b>🌐 IP       :</b> <code>$IP</code>
+<b>🌍 Domain   :</b> <code>$HOST</code>
+<b>🏢 ISP      :</b> <code>$ISPVPS</code>
+<b>📍 City     :</b> <code>$CITY</code>
+<b>📦 Backup Link :</b><a href=\"$backup_link\">Download Here</a>
+<b>==============================</b>
+"
+        curl -s --max-time "$TIME" -d "chat_id=$CHATID" \
+            -d "disable_web_page_preview=1" \
+            -d "parse_mode=html" \
+            --data-urlencode "text=$TEXT" \
+            "$URL" &>/dev/null
+
+        echo -e "[ ${BIWhite}INFO${NC} ] » Backup link berhasil dikirim ke Telegram."
+    }
+    
+    echo -e "[ ${BIWhite}INFO${NC} ] » Please Wait.... "
+    sleep 1
+    echo -e "[ ${BIWhite}INFO${NC} ] » Prepare Before Backup Vps Data... "
+    rm -rf /root/backup &>/dev/null
+    sleep 1
+    echo -e "[ ${BIWhite}INFO${NC} ] » Directory Created... "
+    mkdir -p /root/backup &>/dev/null
+    sleep 1
+    echo -e "[ ${BIWhite}INFO${NC} ] » VPS Data Backup Start Now... "
+    sleep 1
+    cp /etc/passwd backup/ &>/dev/null
+    echo -e "[ ${BIWhite}INFO${NC} ] » Backup passwd data..."
+    sleep 1
+    cp /etc/group backup/ &>/dev/null
+    echo -e "[ ${BIWhite}INFO${NC} ] » Backup group data..."
+    sleep 1
+    cp /etc/shadow backup/ &>/dev/null
+    echo -e "[ ${BIWhite}INFO${NC} ] » Backup shadow data..."
+    sleep 1
+    cp /etc/gshadow backup/ &>/dev/null
+    echo -e "[ ${BIWhite}INFO${NC} ] » Backup gshadow data..."
+    sleep 1
+    cp /etc/crontab backup/ &>/dev/null
+    cp /etc/vmess/.vmess.db backup/ &>/dev/null
+    cp /etc/vless/.vless.db backup/ &>/dev/null
+    cp /etc/trojan/.trojan.db backup/ &>/dev/null
+    cp /etc/shadowsocks/.shadowsocks.db backup/ &>/dev/null
+    cp -r /etc/limit backup/ &>/dev/null
+    cp -r /etc/vmess backup/ &>/dev/null
+    cp -r /etc/trojan backup/ &>/dev/null
+    cp -r /etc/vless backup/ &>/dev/null
+    cp -r /etc/shadowsocks backup/ &>/dev/null
+    cp -r /etc/xray backup/xray &>/dev/null
+    cp -r /var/www/html/ backup/html &>/dev/null
+    cp -a /detail/ backup/detail &>/dev/null
+    
+    cd /root || return 1
+    zip -r "$IP-$DATEVPS.zip" backup &>/dev/null
+    rclone copy "/root/$IP-$DATEVPS.zip" dr:backup/ &>/dev/null
+    
+    local url=$(rclone link "dr:backup/$IP-$DATEVPS.zip")
+    local id=$(echo "$url" | grep '^https' | cut -d'=' -f2)
+    local link="https://drive.google.com/u/4/uc?id=${id}&export=download"
+    
+    rm -rf backup
+    rm -rf "$IP-$DATEVPS.zip"
+
+    echo -e "-------------------------------------"
+    echo -e "SUCCESSFULL BACKUP YOUR VPS"
+    echo -e "Please Save The Following Data"
+    echo -e "-------------------------------------"
+    echo -e "Your VPS IP : $IP"
+    echo -e "DOMAIN      : $HOST"
+    echo -e "DATE        : $DATEVPS"
+    echo -e "ISP         : $ISPVPS"
+    echo -e "LOCATION    : $CITY"
+    echo -e "LINK BACKUP : $link"
+    echo -e "-------------------------------------"
+    echo -e "Please Check your backup link"
+    
+    kirim_link "$link"
+}
+
+backup_to_google_drive
