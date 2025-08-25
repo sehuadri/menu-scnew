@@ -1,0 +1,86 @@
+#!/bin/bash
+clear
+RED='\033[0;31m'
+NC='\033[0m'
+GREEN='\033[0;32m'
+ORANGE='\033[0;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
+LIGHT='\033[0;37m'
+
+clear
+echo -e "${ORANGE}---------------------------------------------\033[0m"
+echo -e "SSH USER LIST"
+echo -e "${ORANGE}---------------------------------------------\033[0m"
+echo "USERNAME          EXP DATE          STATUS"
+echo -e "${ORANGE}---------------------------------------------\033[0m"
+while read expired; do
+    USERNAME="$(echo $expired | cut -d: -f1)"
+    ID="$(echo $expired | grep -v nobody | cut -d: -f3)"
+    exp_date="$(chage -l $USERNAME | grep "Account expires" | awk -F": " '{print $2}')"
+    status="$(passwd -S $USERNAME | awk '{print $2}')"
+    if [[ $ID -ge 1000 ]]; then
+        if [[ "$status" = "L" ]]; then
+            printf "%-17s %2s %-17s %2s \n" "$USERNAME" "$exp_date     " "LOCKED"
+        else
+            printf "%-17s %2s %-17s %2s \n" "$USERNAME" "$exp_date     " "UNLOCKED"
+        fi
+    fi
+done < /etc/passwd
+echo -e "${ORANGE}---------------------------------------------\033[0m"
+echo -e "Enter the Username"
+echo -e "${ORANGE}---------------------------------------------\033[0m"
+read -p "Username : " USERNAME
+egrep "^$USERNAME" /etc/passwd >/dev/null
+if [ $? -eq 0 ]; then
+    read -p "Extend Days : " DAYS
+    read -p "New Quota (GB): " QUOTA
+    read -p "New IP Limit : " IP_LIMIT
+
+    # Update Expiration
+    TODAY=$(date +%s)
+    EXTEND_SECONDS=$((DAYS * 86400))
+    EXPIRY_DATE=$(($TODAY + $EXTEND_SECONDS))
+    FORMATTED_EXPIRY=$(date -u --date="1970-01-01 $EXPIRY_DATE sec GMT" +%Y/%m/%d)
+    EXPIRY_DISPLAY=$(date -u --date="1970-01-01 $EXPIRY_DATE sec GMT" '+%d %b %Y')
+    passwd -u $USERNAME
+    usermod -e $FORMATTED_EXPIRY $USERNAME
+
+    # Update Quota
+    mkdir -p /etc/ssh
+    QUOTA_BYTES=$(($QUOTA * 1024 * 1024 * 1024))
+    echo $QUOTA_BYTES > /etc/ssh/$USERNAME
+
+    # Update IP Limit
+    mkdir -p /etc/limit/ssh/ip
+    echo $IP_LIMIT > /etc/limit/ssh/ip/$USERNAME
+
+    clear
+    echo -e "${ORANGE}---------------------------------------------\033[0m"
+    echo -e "Extend SSH User Active Period"
+    echo -e "${ORANGE}---------------------------------------------\033[0m"
+    echo -e ""
+    echo -e "Username      : $USERNAME"
+    echo -e "Days Extended : $DAYS Days"
+    echo -e "Expires on    : $EXPIRY_DISPLAY"
+    echo -e "New Quota     : ${QUOTA} GB"
+    echo -e "New IP Limit  : $IP_LIMIT IP"
+    echo -e ""
+    echo -e "${ORANGE}---------------------------------------------\033[0m"
+    echo -e ""
+    read -n 1 -s -r -p "Press any key to return to the menu"
+    m-ssh
+else
+    clear
+    echo -e "${RED}---------------------------------------------\033[0m"
+    echo -e "Extend SSH User Active Period"
+    echo -e "${RED}---------------------------------------------\033[0m"
+    echo -e ""
+    echo -e "Username Not Found"
+    echo -e ""
+    echo -e "${RED}---------------------------------------------\033[0m"
+    echo -e ""
+    read -n 1 -s -r -p "Press any key to return to the menu"
+    m-ssh
+fi

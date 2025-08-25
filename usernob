@@ -1,0 +1,89 @@
+#!/bin/bash
+BC='\e[38;5;195m'
+R1='\e[38;5;155m'
+RED='\e[31m'
+Suffix='\e[0m'
+
+# Header
+echo -e "${BC}---------------------------------------------${Suffix}"
+echo -e "${R1}DETAILS ACCOUNT NOOBZVPNS${Suffix}"
+echo -e "${BC}---------------------------------------------${Suffix}"
+
+# Validasi apakah file konfigurasi ada
+config_file="/etc/noobzvpns/.noobzvpns"
+if [[ ! -f "$config_file" ]]; then
+    echo -e "${RED}Config file not found: $config_file${Suffix}"
+    read -n 1 -s -r -p "Press any key to back on menu"
+    m-nob
+fi
+
+# Mengambil daftar akun dan tanggal kedaluwarsa dari konfigurasi
+accounts=$(grep -E "^#nob# " "$config_file" | awk '{print $2, $3}' | sort -u)
+
+# Periksa apakah daftar akun kosong
+if [[ -z "$accounts" ]]; then
+    echo -e "${RED}No accounts found in configuration.${Suffix}"
+    read -n 1 -s -r -p "Press any key to back on menu"
+    m-nob
+fi
+
+# Menampilkan daftar akun dan tanggal kedaluwarsa
+i=1
+declare -a account_array
+echo -e "NO   USERNAME          EXPIRY DATE"
+while read -r AKUN exp; do
+    if [[ -n "$AKUN" && -n "$exp" ]]; then
+        printf "%-4s %-17s %-17s\n" "$i)" "$AKUN" "$exp"
+        account_array+=("$AKUN")
+        ((i++))
+    fi
+done <<< "$accounts"
+
+
+# Validasi jika array kosong
+if [[ ${#account_array[@]} -eq 0 ]]; then
+    echo -e "${RED}No valid accounts found.${Suffix}"
+    read -n 1 -s -r -p "Press any key to back on menu"
+    m-nob
+fi
+
+# Meminta input nomor pengguna
+echo ""
+read -p "Just input Number: " number
+
+# Validasi input kosong atau tidak angka
+if [[ -z "$number" || ! "$number" =~ ^[0-9]+$ ]]; then
+    echo -e "${RED}Invalid input. Please enter a valid number.${Suffix}"
+    read -n 1 -s -r -p "Press any key to back on menu"
+    m-nob
+fi
+
+# Validasi input dalam rentang array
+if (( number < 1 || number > ${#account_array[@]} )); then
+    echo -e "${RED}Number is out of range. Please select a valid number.${Suffix}"
+    read -n 1 -s -r -p "Press any key to back on menu"
+    m-nob
+fi
+
+# Memilih user berdasarkan nomor yang dimasukkan
+selected_user="${account_array[$((number - 1))]}"
+
+# Debug akun yang dipilih
+echo "DEBUG: Selected User: ${selected_user}"
+
+# Periksa apakah file detail user ada
+detail_file="/detail/nob/$selected_user.txt"
+if [[ -f "$detail_file" ]]; then
+    clear
+    echo -e "${BC}---------------------------------------------${Suffix}"
+    echo -e "${R1}DETAILS FOR USER: $selected_user${Suffix}"
+    echo -e "${BC}---------------------------------------------${Suffix}"
+    cat "$detail_file"
+    echo -e "${BC}---------------------------------------------${Suffix}"
+    read -n 1 -s -r -p "Press any key to back on menu"
+    m-nob
+else
+    echo -e "${RED}Detail file not found for user: $selected_user${Suffix}"
+    read -n 1 -s -r -p "Press any key to back on menu"
+    m-nob
+fi

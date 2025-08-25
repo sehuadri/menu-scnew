@@ -1,0 +1,222 @@
+#!/bin/bash
+clear
+echo -e " ${w} $NC$y Version$NC       ${w}=$NC V3.0"
+echo -e " ${w} $NC$y Client Name$NC   ${w}=$NC $username"#!/bin/bash
+DF='\e[39m'
+Bold='\e[1m'
+Blink='\e[5m'
+yell='\e[33m'
+RED='\033[0;31m'
+green='\e[32m'
+PURPLE='\e[35m'
+cyan='\e[36m'
+LRED='\e[91m'
+Lgreen='\e[92m'
+Lyellow='\e[93m'
+NC='\e[0m'
+GREEN='\033[0;32m'
+ORANGE='\033[0;33m'
+LIGHT='\033[0;37m'
+grenbo="\e[92;1m"
+blue="\033[0;34m"
+Blue="\033[36m"
+BIYellow='\033[1;93m'
+BIWhite='\033[1;97m'
+IGreen='\033[0;92m'
+bggreen='\e[42;97;1m'
+clear
+
+domain=$(cat /etc/xray/domain)
+WKT=$(curl -s ipinfo.io/timezone)
+IPVPS=$(curl -s ipv4.icanhazip.com)
+tram=$(free -m | awk 'NR==2 {print $2}')
+swap=$(free -m | awk 'NR==4 {print $2}')
+freq=$(awk -F: ' /cpu MHz/ {freq=$2} END {print freq}' /proc/cpuinfo)
+cores=$(awk -F: '/model name/ {core++} END {print core}' /proc/cpuinfo)
+cname=$(awk -F: '/model name/ {name=$2} END {print name}' /proc/cpuinfo)
+knr=$( uname -r )
+
+export IP=$( curl -s https://ipinfo.io/ip/ )
+
+ssh_service=$(systemctl is-active ssh)
+openvpn_service=$(systemctl is-active openvpn)
+dropbear_status=$(systemctl is-active dropbear)
+haproxy_service=$(systemctl is-active haproxy)
+fail2ban_service=$(systemctl is-active fail2ban)
+cron_service=$(systemctl is-active cron)
+badvpn1=$(systemctl is-active udp-mini-1)
+badvpn2=$(systemctl is-active udp-mini-2)
+badvpn3=$(systemctl is-active udp-mini-3)
+Iptables=$(systemctl is-active netfilter-persistent)
+RClocal=$(systemctl is-active rc-local)
+Autorebot=$(systemctl is-active rc-local)
+UdpSSH=$(systemctl is-active udp-custom)
+
+openssh=$( systemctl is-active ssh )
+if [[ $openssh == "active" ]]; then
+    status_openssh=" ${GREEN}Running ${NC}(No Error)${NC}"
+else
+    status_openssh="${RED}  Not Running ${NC}  (Error)${NC}"
+fi
+
+slowdns=$( systemctl is-active server-sldns )
+if [[ $slowdns == "active" ]]; then
+    status_sldns=" ${GREEN}Running ${NC}(No Error)${NC}"
+else
+    status_sldns="${RED}  Not Running ${NC}  (Error)${NC}"
+fi
+
+ssh_wsl=$( systemctl is-active ws-stunnel )
+if [[ $ssh_wsl == "active" ]]; then
+    status_ws=" ${GREEN}Running ${NC}(No Error)${NC}"
+else
+    status_ws="${RED}  Not Running ${NC}  (Error)${NC}"
+fi
+
+ss=$( systemctl is-active xray )
+if [[ $ss == "active" ]]; then
+    status_ss=" ${GREEN}Running ${NC}(No Error)${NC}"
+else
+    status_ss="${RED}  Not Running ${NC}  (Error)${NC}"
+fi
+
+nginx=$(systemctl is-active nginx)
+if [[ $nginx == "active" ]]; then
+    status_nginx=" ${GREEN}Running ${NC}(No Error)${NC}"
+else
+    status_nginx="${RED}  Not Running ${NC}  (Error)${NC}"
+fi
+
+# STATUS SERVICE IPTABLES
+if [[ $Iptables == "active" ]]; then
+    status_galo=" ${GREEN}Running ${NC}(No Error)${NC}"
+else
+    status_galo="${RED}  Not Running ${NC}  (Error)${NC}"
+fi
+
+# STATUS SERVICE  SSH 
+if [[ $ssh_service == "active" ]]; then 
+   status_ssh=" ${GREEN}Running ${NC}(No Error)${NC}"
+else
+   status_ssh="${RED}  Not Running ${NC}  (Error)${NC}"
+fi
+
+# STATUS SERVICE OPENVPN
+if [[ $openvpn_service == "active" ]]; then
+  status_openvpn=" ${GREEN}Running ${NC}(No Error)${NC}"
+else
+  status_openvpn="${RED}  Not Running ${NC}  (Error)${NC}"
+fi
+
+
+if [[ $dropbear_status == "active" ]]; then 
+   status_beruangjatuh=" ${GREEN}Running ${NC}(No Error)${NC}"
+else
+   status_beruangjatuh="${RED}Offline${NC} ${NC}"
+fi
+
+
+if [[ $haproxy_service == "active" ]]; then 
+   status_haproxy=" ${GREEN}Running ${NC}(No Error)${NC}"
+else
+   status_haproxy="${RED}  Not Running ${NC}  (Error)${NC}"
+fi
+
+# STATUS SERVICE  FAIL2BAN 
+if [[ $fail2ban_service == "active" ]]; then 
+   status_fail2ban=" ${GREEN}Running ${NC}(No Error)${NC}"
+else
+   status_fail2ban="${RED}  Not Running ${NC}  (Error)${NC}"
+fi
+
+# STATUS SERVICE  CRONS 
+if [[ $cron_service == "active" ]]; then 
+   status_cron=" ${GREEN}Running ${NC}(No Error)${NC}"
+else
+   status_cron="${RED}  Not Running ${NC}  (Error)${NC}"
+fi
+
+# STATUS SERVICE  BADVPN 1
+if [[ $badvpn1 == "active" ]]; then 
+   status_udp1=" ${GREEN}Running ${NC}(No Error)${NC}"
+else
+   status_udp1="${RED}  Not Running ${NC}  (Error)${NC}"
+fi
+
+# STATUS SERVICE  BADVPN 2
+if [[ $badvpn2 == "active" ]]; then 
+   status_udp2=" ${GREEN}Running ${NC}(No Error)${NC}"
+else
+   status_udp2="${RED}  Not Running ${NC}  (Error)${NC}"
+fi
+
+# STATUS SERVICE  BADVPN 3
+if [[ $badvpn3 == "active" ]]; then 
+   status_udp3=" ${GREEN}Running ${NC}(No Error)${NC}"
+else
+   status_udp3="${RED}  Not Running ${NC}  (Error)${NC}"
+fi
+
+if [[ $RClocal == "active" ]]; then
+    status_galoo=" ${GREEN}Running ${NC}(No Error)${NC}"
+else
+    status_galoo="${RED}  Not Running ${NC}  (Error)${NC}"
+fi
+
+if [[ $Autorebot == "active" ]]; then
+    status_galooo=" ${GREEN}Running ${NC}(No Error)${NC}"
+else
+    status_galooo="${RED}  Not Running ${NC}  (Error)${NC}"
+fi
+
+
+if [[ $UdpSSH == "active" ]]; then 
+   status_udp=" ${GREEN}Running ${NC}(No Error)${NC}"
+else
+   status_udp="${RED}  Not Running ${NC}  (Error)${NC}"
+fi
+
+noobz=$( systemctl is-active noobzvpns )
+if [[ $noobz == "active" ]]; then
+    status_nobi=" ${GREEN}Running ${NC}(No Error)${NC}"
+else
+    status_nobi="${RED}  Not Running ${NC}  (Error)${NC}"
+fi
+clear
+echo -e "${BIWhite}┌──────────────────────────────────────────────────────────┐${NC}"
+echo -e "${BIWhite}│ ${bggreen}                    SYSTEM INFORMATION                  \033[0m ${BIWhite}│${NC}"
+echo -e "${BIWhite}└──────────────────────────────────────────────────────────┘${NC}"
+echo -e "${BIWhite}»${NC}${BIYellow} Operating System        :${NC} $(cat /etc/os-release | grep -w PRETTY_NAME | head -n1 | sed 's/=//g' | sed 's/"//g' | sed 's/PRETTY_NAME//g')"
+echo -e "${BIWhite}»${NC}${BIYellow} IP Server               :${NC} $IPVPS"
+echo -e "${BIWhite}»${NC}${BIYellow} Domain                  :${NC} $(cat /etc/xray/domain)"
+echo -e "${BIWhite}┌──────────────────────────────────────────────────────────┐${NC}"
+echo -e "${BIWhite}│ ${bggreen}                   SERVICE INFORMATION                  \033[0m ${BIWhite}│${NC}"
+echo -e "${BIWhite}└──────────────────────────────────────────────────────────┘${NC}"
+echo -e "${BIWhite}»${NC}${BIYellow} Crons                   :${NC} $status_cron"
+echo -e "${BIWhite}»${NC}${BIYellow} SSH WS                  :${NC} $status_ws"
+echo -e "${BIWhite}»${NC}${BIYellow} Haproxy                 :${NC} $status_haproxy"
+echo -e "${BIWhite}»${NC}${BIYellow} Slowdns                 :${NC} $status_sldns"
+echo -e "${BIWhite}»${NC}${BIYellow} Fail2Ban                :${NC} $status_fail2ban"
+echo -e "${BIWhite}»${NC}${BIYellow} Dropbear                :${NC} $status_beruangjatuh"
+echo -e "${BIWhite}»${NC}${BIYellow} Noobzvpns               :${NC} $status_nobi"
+echo -e "${BIWhite}»${NC}${BIYellow} SSH UDP Custom          :${NC} $status_udp"
+echo -e "${BIWhite}»${NC}${BIYellow} Nginx Webserver         :${NC} $status_nginx"
+echo -e "${BIWhite}»${NC}${BIYellow} XRAYS Vmess WS TLS      :${NC} $status_ss"
+echo -e "${BIWhite}»${NC}${BIYellow} XRAYS Vmess WS Non TLS  :${NC} $status_ss"
+echo -e "${BIWhite}»${NC}${BIYellow} XRAYS Vmess gRPC        :${NC} $status_ss"
+echo -e "${BIWhite}»${NC}${BIYellow} XRAYS Vless WS TLS      :${NC} $status_ss"
+echo -e "${BIWhite}»${NC}${BIYellow} XRAYS Vless WS Non TLS  :${NC} $status_ss"
+echo -e "${BIWhite}»${NC}${BIYellow} XRAYS Vless gRPC        :${NC} $status_ss"
+echo -e "${BIWhite}»${NC}${BIYellow} XRAYS Trojan WS         :${NC} $status_ss"
+echo -e "${BIWhite}»${NC}${BIYellow} XRAYS Trojan Non WS     :${NC} $status_ss"
+echo -e "${BIWhite}»${NC}${BIYellow} XRAYS Trojan gRPC       :${NC} $status_ss"
+echo -e "${BIWhite}»${NC}${BIYellow} XRAYS Shadowsocks WS    :${NC} $status_ss"
+echo -e "${BIWhite}»${NC}${BIYellow} XRAYS Shadowsocks Non WS:${NC} $status_ss"
+echo -e "${BIWhite}»${NC}${BIYellow} XRAYS Shadowsocks gRPC  :${NC} $status_ss"
+echo -e "${BIWhite}»${NC}${BIYellow} Iptables                :${NC} $status_galo"
+echo -e "${BIWhite}»${NC}${BIYellow} RClocal                 :${NC} $status_galoo"
+echo -e "${BIWhite}»${NC}${BIYellow} Autoreboot              :${NC} $status_galooo"
+echo -e "${BIWhite}───────────────────────────────────────────────────────────${NC}"
+echo ""
+read -n 1 -s -r -p "Press any key to back on menu"
+menu

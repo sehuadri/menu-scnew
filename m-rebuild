@@ -1,0 +1,167 @@
+#!/bin/bash
+clear
+PERMISSION() {
+    MYIP=$(curl -sS ipv4.icanhazip.com)
+
+    TODAY_DATE=$(date +'%Y-%m-%d')
+
+    AUTHORIZED_ENTRY=$(curl -sS https://raw.githubusercontent.com/sehuadri/project/main/ip | grep -w "$MYIP" | head -1)
+
+    if [[ -n "$AUTHORIZED_ENTRY" ]]; then
+        # IP_FROM_ENTRY sekarang adalah field ke-4
+        IP_FROM_ENTRY=$(echo "$AUTHORIZED_ENTRY" | awk '{print $4}')
+        # EXP_DATE_OR_LIFETIME_STATUS sekarang adalah field ke-3
+        EXP_DATE_OR_LIFETIME_STATUS=$(echo "$AUTHORIZED_ENTRY" | awk '{print $3}') 
+
+        if [ "$MYIP" = "$IP_FROM_ENTRY" ]; then
+            # Cek apakah statusnya 'lifetime'
+            if [[ "$EXP_DATE_OR_LIFETIME_STATUS" == "lifetime" ]]; then
+                echo -e "\033[1;92mPermission Accepted (Lifetime User)\033[0m"
+                echo -e "\033[1;97mAkses Di Izinkan (Pengguna Lifetime)${NC}"
+            # Jika bukan 'lifetime', baru lakukan perbandingan tanggal
+            elif [[ "$TODAY_DATE" < "$EXP_DATE_OR_LIFETIME_STATUS" ]]; then
+                echo -e "\033[1;92mPermission Accepted\033[0m"
+                echo -e "\033[1;97mAkses Di Izinkan${NC}"
+            elif [[ "$TODAY_DATE" == "$EXP_DATE_OR_LIFETIME_STATUS" ]]; then
+                echo -e "\033[1;93mPermission Accepted (Today is Expiry Date)\033[0m"
+                echo -e "\033[1;97mAkses Di Izinkan (Hari Ini Kadaluarsa)${NC}"
+            else
+                echo -e "\033[1;91mPermission Denied (Expired)\033[0m"
+                echo -e "\033[1;97mAkses Di Tolak (Kadaluarsa)${NC}"
+                read -n 1 -s -r -p "Press [ Enter ] to Exit"
+                exit 1
+            fi
+        else
+            echo -e "\033[1;91mPermission Denied (IP Mismatch)\033[0m"
+            echo -e "\033[1;97mAkses Di Tolak (IP Tidak Cocok)${NC}"
+            read -n 1 -s -r -p "Press [ Enter ] to Exit"
+            exit 1
+        fi
+    else
+        echo -e "\033[1;91mPermission Denied (IP Not Found)\033[0m"
+        echo -e "\033[1;97mAkses Di Tolak (IP Tidak Ditemukan)${NC}"
+        read -n 1 -s -r -p "Press [ Enter ] to Exit"
+        exit 1
+    fi
+}
+
+PERMISSION
+clear
+IGreen='\033[0;92m'
+BlueCyan='\e[5;36m'
+Xark='\e[0m'
+ungu='\033[0;35m'
+yellow='\e[33m'
+BIWhite='\033[1;97m'
+BIYellow='\033[1;93m'
+WhiteBe='\e[5;37m'
+GreenBe='\e[5;32m'
+BlueCyan='\e[5;36m'
+Xark='\e[0m'
+NC='\033[0m'
+clear
+function baris_panjang() {
+  echo -e "${BIWhite}──────────────────────────────────────${Xark} "
+}
+
+
+function osx_ubuntu() {
+  baris_panjang
+  echo -e "${BIYellow}Pilih Os Ubuntu${Xark} "
+  baris_panjang
+  echo -e "${IGreen}[${BIWhite}01${IGreen}] ${NC}${BIWhite}Ubuntu Versi 20.04${NC}"
+  echo -e "${IGreen}[${BIWhite}02${IGreen}] ${NC}${BIWhite}Ubuntu Versi 22.04${NC}"
+  echo -e "${IGreen}[${BIWhite}03${IGreen}] ${NC}${BIWhite}Ubuntu Versi 24.04${NC}"
+  echo -e "${IGreen}[${BIWhite}04${IGreen}] ${NC}${BIWhite}Ubuntu Versi 24.10${NC}"
+  baris_panjang
+  echo -e "${BIYellow}Input x or [ Ctrl+C ] • To-${BIWhite}Exit${NC}"
+  baris_panjang
+  echo ""
+  read -p "Select menu :" opt
+  echo -e ""
+case $opt in
+1) clear ; ub20.04 ;;
+2) clear ; ub22.04 ;;
+3) clear ; ub24.04 ;;
+4) clear ; ub24.10 ;;
+x) clear ; menu ;;
+*) echo "anda salah tekan" ; sleep 1 ; m-rebuild ;;
+esac
+
+}
+
+
+function ub20.04() {
+  curl -O https://raw.githubusercontent.com/bin456789/reinstall/main/reinstall.sh && bash reinstall.sh Ubuntu 20.04 && reboot
+}
+
+function ub22.04() {
+  curl -O https://raw.githubusercontent.com/bin456789/reinstall/main/reinstall.sh && bash reinstall.sh Ubuntu 22.04 && reboot
+}
+
+function ub24.04() {
+  curl -O https://raw.githubusercontent.com/bin456789/reinstall/main/reinstall.sh && bash reinstall.sh Ubuntu 24.04 && reboot
+}
+
+function ub24.10() {
+  curl -O https://raw.githubusercontent.com/bin456789/reinstall/main/reinstall.sh && bash reinstall.sh Ubuntu 24.10 && reboot
+}
+
+function osx_debian() {
+  baris_panjang
+  echo -e "${BIYellow}Pilih Os Debian${Xark} "
+  baris_panjang
+  echo -e "${IGreen}[${BIWhite}01${IGreen}] ${NC}${BIWhite}Debian 10${NC}"
+  echo -e "${IGreen}[${BIWhite}02${IGreen}] ${NC}${BIWhite}Debian 11${NC}"
+  echo -e "${IGreen}[${BIWhite}03${IGreen}] ${NC}${BIWhite}Debian 12${NC}"
+  baris_panjang
+  echo -e "${BIYellow}Input x or [ Ctrl+C ] • To-${BIWhite}Exit${NC}"
+  baris_panjang
+  echo ""
+  read -p "Select menu :" opt
+  echo -e ""
+case $opt in
+1) clear ; deb10 ;;
+2) clear ; deb11 ;;
+3) clear ; deb12 ;;
+x) clear ; menu ;;
+*) echo "anda salah tekan" ; sleep 1 ; m-rebuild ;;
+esac
+
+}
+
+function deb10() {
+  curl -O https://raw.githubusercontent.com/bin456789/reinstall/main/reinstall.sh && bash reinstall.sh Debian 10 && reboot
+}
+function deb11() {
+  curl -O https://raw.githubusercontent.com/bin456789/reinstall/main/reinstall.sh && bash reinstall.sh Debian 11 && reboot
+}
+
+function deb12() {
+  curl -O https://raw.githubusercontent.com/bin456789/reinstall/main/reinstall.sh && bash reinstall.sh Debian 12 && reboot
+}
+
+function Banner() {
+  baris_panjang
+  echo -e "${BIYellow}REBUILD MANAGER${NC}"
+  baris_panjang
+}
+
+
+function Menu_Features() {
+  echo -e "${IGreen}[${BIWhite}01${IGreen}] ${NC}${BIWhite}Rebuild Vps Debian${NC}"
+  echo -e "${IGreen}[${BIWhite}02${IGreen}] ${NC}${BIWhite}Rebuild Vps Ubuntu${NC}"
+  baris_panjang
+  echo -e "${BIYellow}Input x or [ Ctrl+C ] • To-${BIWhite}Exit${Xark}"
+  baris_panjang
+}
+
+Banner
+Menu_Features
+read -p "Select Menu :" Opt
+case $Opt in
+1) clear ; osx_debian ;;
+2) clear ; osx_ubuntu ;;
+x) clear ; menu ;;
+*) echo "anda salah tekan" ; sleep 1 ; m-rebuild ;;
+esac

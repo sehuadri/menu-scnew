@@ -1,0 +1,83 @@
+#!/bin/bash
+clear
+y='\033[1;33m'
+BGX="\033[42m"
+CYAN="\033[96m"
+Putih="\033[97m"
+RED='\033[0;31m'
+NC='\033[0m'
+green='\033[0;32m'
+BIBlack='\033[1;90m'
+BIGreen='\033[1;92m'
+BIYellow='\033[1;93m'
+BIBlue='\033[1;94m'
+BIPurple='\033[1;95m'
+BICyan='\033[1;96m'
+BIWhite='\033[1;97m'
+UWhite='\033[4;37m'
+On_IPurple='\033[0;105m'
+On_IRed='\033[0;101m'
+IBlack='\033[0;90m'
+IGreen='\033[0;92m'
+IYellow='\033[0;93m'
+IBlue='\033[0;94m'
+IPurple='\033[0;95m'
+ICyan='\033[0;96m'
+IWhite='\033[0;97m'
+GREENBO='\033[1;32m'
+bgwhite='\e[40;97;1m'
+bgred='\e[41;97;1m'
+bggreen='\e[42;97;1m'
+bgyellow='\e[43;97;1m'
+bgmagenta='\e[45;97;1m'
+bgblue='\e[46;97;1m'
+bgblack='\e[47;30;1m'
+w='\033[97m'
+ORANGE='\033[0;34m'
+clear
+echo -e "${BIWhite}──────────────────────────────────────${NC}"
+echo -e "${BIYellow}WARP MANAGER${NC}"
+echo -e "${BIWhite}──────────────────────────────────────${NC}"
+echo -e "${IGreen}[${BIWhite}01${IGreen}] ${NC}${BIWhite}Install Warp Client${NC}"
+echo -e "${IGreen}[${BIWhite}02${IGreen}] ${NC}${BIWhite}Uninstall Warp Client${NC}"
+echo -e "${IGreen}[${BIWhite}03${IGreen}] ${NC}${BIWhite}Restart Warp Client${NC}"
+echo -e "${IGreen}[${BIWhite}04${IGreen}] ${NC}${BIWhite}Activate Warp Proxy Mode${NC}"
+echo -e "${IGreen}[${BIWhite}05${IGreen}] ${NC}${BIWhite}Deactivate Warp Proxy Mode${NC}"
+echo -e "${IGreen}[${BIWhite}06${IGreen}] ${NC}${BIWhite}Warp Wireguard${NC}"
+echo -e "${IGreen}[${BIWhite}07${IGreen}] ${NC}${BIWhite}Warp IPv4${NC}"
+echo -e "${IGreen}[${BIWhite}08${IGreen}] ${NC}${BIWhite}Warp IPv6${NC}"
+echo -e "${IGreen}[${BIWhite}09${IGreen}] ${NC}${BIWhite}Warp Ipv4 & IPv6${NC}"
+echo -e "${IGreen}[${BIWhite}10${IGreen}] ${NC}${BIWhite}Warp Routing${NC}"
+echo -e "${IGreen}[${BIWhite}11${IGreen}] ${NC}${BIWhite}Restart Warp Wireguard${NC}"
+echo -e "${IGreen}[${BIWhite}12${IGreen}] ${NC}${BIWhite}Stop Warp Wireguard${NC}"
+echo -e "${IGreen}[${BIWhite}13${IGreen}] ${NC}${BIWhite}Warp Status${NC}"
+echo -e "${IGreen}[${BIWhite}14${IGreen}] ${NC}${BIWhite}Warp Version${NC}"
+echo -e "${IGreen}[${BIWhite}15${IGreen}] ${NC}${BIWhite}Warp Help${NC}"
+echo -e "${IGreen}[${BIWhite}16${IGreen}] ${NC}${BIWhite}Warp Chinese Menu${NC}"
+echo -e "${BIWhite}──────────────────────────────────────${NC}"
+echo -e "${BIYellow}Input x or [ Ctrl+C ] • To-${BIWhite}Exit${NC}"
+echo -e "${BIWhite}──────────────────────────────────────${NC}"
+echo ""
+read -p "Select menu :" opt
+echo -e ""
+case $opt in
+1) clear ; bash <(curl -fsSL git.io/warp.sh) install ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; m-warp ;;
+2) clear ; bash <(curl -fsSL git.io/warp.sh) uninstall ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; m-warp ;;
+3) clear ; bash <(curl -fsSL git.io/warp.sh) restart ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; m-warp ;;
+4) clear ; bash <(curl -fsSL git.io/warp.sh) proxy ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; m-warp ;;
+5) clear ; bash <(curl -fsSL git.io/warp.sh) unproxy ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; m-warp ;;
+6) clear ; bash <(curl -fsSL git.io/warp.sh) wg ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; m-warp ;;
+7) clear ; bash <(curl -fsSL git.io/warp.sh) wg4 ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; m-warp ;;
+8) clear ; bash <(curl -fsSL git.io/warp.sh) wg6 ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; m-warp ;;
+9) clear ; bash <(curl -fsSL git.io/warp.sh) wgd ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; m-warp ;;
+10) clear ; bash <(curl -fsSL git.io/warp.sh) wgx ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; m-warp ;;
+11) clear ; bash <(curl -fsSL git.io/warp.sh) rwg ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; m-warp ;;
+12) clear ; bash <(curl -fsSL git.io/warp.sh) dwg ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; m-warp ;;
+13) clear ; bash <(curl -fsSL git.io/warp.sh) status ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; m-warp ;;
+14) clear ; bash <(curl -fsSL git.io/warp.sh) version ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; m-warp ;;
+15) clear ; bash <(curl -fsSL git.io/warp.sh) help ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; m-warp ;;
+16) clear ; bash <(curl -fsSL git.io/warp.sh) menu ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; m-warp ;;
+0) clear ; menu ; exit ;;
+x) clear ; menu ;;
+*) echo "anda salah tekan" ; sleep 1 ; m-warp ;;
+esac

@@ -1,0 +1,30 @@
+#!/bin/bash
+BIYellow='\033[1;93m'
+BIBlue='\033[1;94m'
+BIPurple='\033[1;95m'
+BICyan='\033[1;96m'
+BIWhite='\033[1;97m'
+Lime='\e[38;5;155m'
+NC='\033[0m'
+clear
+setup_bot() {
+    clear
+    echo -e "${BIWhite}──────────────────────────${NC}"
+    echo -e "${BIYellow}BACKUP BOT SETUP MANAGER${NC}"
+    echo -e "${BIWhite}──────────────────────────${NC}"
+    switch=$(grep -i "switch" /root/.bckupbot | awk '{print $2}' 2>/dev/null)
+    echo "Pergi ke @BotFather dan type /newbot untuk membuat bot baru"
+    echo "Pergi ke @MissRose_bot dan type /id untuk mendapatkan ID telegram"
+    echo ""
+    read -p "Bot Token : " getToken
+    read -p "Admin ID  : " adminID
+    echo "$getToken" >/root/.bckupbot
+    echo "$adminID" >>/root/.bckupbot
+    echo "switch $switch" >>/root/.bckupbot
+    echo ""
+    echo -e "${BIWhite}Pengaturan Bot Berhasil di simpan.${NC}"
+    read -n 1 -s -r -p "Press any key to back"
+    m-backup
+}
+
+setup_bot

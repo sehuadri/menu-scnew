@@ -1,0 +1,198 @@
+#!/bin/bash
+clear
+if ! command -v at &> /dev/null; then
+    apt update && sudo apt install -y at
+	systemctl enable --now atd
+fi
+clear
+echo -e "\033[1;93m-----------------------------------------\033[0m"
+echo -e "CREATE TRIAL TROJAN ACCOUNT"
+echo -e "\033[1;93m-----------------------------------------\033[0m"
+echo -e ""
+echo -e "Note: Input Hanya angka saja"
+echo -e "Contoh: 30"
+echo -e ""
+while true; do
+    read -p "Input Minutes : " pup
+    if [[ "$pup" =~ ^[0-9]+$ ]]; then
+        break
+    else
+        echo -e "Mohon Untuk Input Angka Saja"
+    fi
+done
+Login=Trial
+masaaktif=1
+iplimit=1
+Quota=1
+user="${Login}TR$(tr -dc 0-9 </dev/urandom | head -c3)"
+domain=$(cat /etc/xray/domain)
+uuid=$(cat /proc/sys/kernel/random/uuid)
+tgl=$(date -d "$masaaktif days" +"%d")
+bln=$(date -d "$masaaktif days" +"%b")
+thn=$(date -d "$masaaktif days" +"%Y")
+expe="$tgl $bln, $thn"
+tgl2=$(date +"%d")
+bln2=$(date +"%b")
+thn2=$(date +"%Y")
+tnggl="$tgl2 $bln2, $thn2"
+exp=`date -d "$masaaktif days" +"%Y-%m-%d"`
+sed -i '/#trojanws$/a\#! '"$user $exp"'\
+},{"password": "'""$uuid""'","email": "'""$user""'"' /etc/xray/config.json
+sed -i '/#trojangrpc$/a\#! '"$user $exp"'\
+},{"password": "'""$uuid""'","email": "'""$user""'"' /etc/xray/config.json
+
+# Link Trojan Akun
+systemctl restart xray > /dev/null 2>&1
+trojanlink1="trojan://${uuid}@${domain}:443?mode=gun&security=tls&type=grpc&serviceName=trojan-grpc&sni=${domain}#${user}"
+trojanlink="trojan://${uuid}@${domain}:443?path=%2Ftrojan-ws&security=tls&host=${domain}&type=ws&sni=${domain}#${user}"
+
+mkdir -p /detail/trojan/
+#Simpan Detail Akun User
+cat > /detail/trojan/$user.txt <<-END
+-----------------------------------------
+Trial Trojan Account
+-----------------------------------------
+Remarks          : ${user}
+Host/IP          : ${domain}
+User Quota       : ${Quota} GB
+User Ip          : ${iplimit} IP
+Port             : 443,8443
+Key              : ${uuid}
+Path             : /trojan-ws/multi-path
+ServiceName      : trojan-grpc
+-----------------------------------------
+Link TLS         : ${trojanlink}
+-----------------------------------------
+Link GRPC        : ${trojanlink1}
+-----------------------------------------
+Format OpenClash : https://${domain}:81/trojan-$user.txt
+-----------------------------------------
+Dibuat Pada      : $tnggl
+Aktif Selama     : $pup Minutes
+-----------------------------------------
+
+END
+
+cat >/var/www/html/trojan-$user.txt <<-END
+-----------------------------------------
+Format Open Clash
+-----------------------------------------
+- name: Trojan-$user-GO/WS
+  server: ${domain}
+  port: 443
+  type: trojan
+  password: ${uuid}
+  network: ws
+  sni: ${domain}
+  skip-cert-verify: true
+  udp: true
+  ws-opts:
+    path: /trojan-ws
+    headers:
+        Host: ${domain}
+
+- name: Trojan-$user-gRPC
+  type: trojan
+  server: ${domain}
+  port: 443
+  password: ${uuid}
+  udp: true
+  sni: ${domain}
+  skip-cert-verify: true
+  network: grpc
+  grpc-opts:
+    grpc-service-name: trojan-grpc
+
+-----------------------------------------
+Link Akun Trojan 
+-----------------------------------------
+Link WS          : 
+${trojanlink}
+-----------------------------------------
+Link GRPC        : 
+${trojanlink1}
+-----------------------------------------
+Expired          : $pup Minutes
+-----------------------------------------
+END
+
+trojanlink="trojan://${uuid}@${domain}:443?path=%2Ftrojan-ws&security=tls&host=${domain}&type=ws&sni=${domain}#${user}"
+trojanlink1="trojan://${uuid}@${domain}:443?mode=gun&security=tls&type=grpc&serviceName=trojan-grpc&sni=${domain}#${user}"
+if [ ! -e /etc/trojan ]; then
+  mkdir -p /etc/trojan
+fi
+
+if [[ $iplimit -gt 0 ]]; then
+mkdir -p /etc/limit/trojan/ip
+echo -e "$iplimit" > /etc/limit/trojan/ip/$user
+else
+echo > /dev/null
+fi
+
+if [ -z ${Quota} ]; then
+  Quota="0"
+fi
+
+c=$(echo "${Quota}" | sed 's/[^0-9]*//g')
+d=$((${c} * 1024 * 1024 * 1024))
+
+if [[ ${c} != "0" ]]; then
+  echo "${d}" >/etc/trojan/${user}
+fi
+DATADB=$(cat /etc/trojan/.trojan.db | grep "^#!" | grep -w "${user}" | awk '{print $2}')
+if [[ "${DATADB}" != '' ]]; then
+  sed -i "/\b${user}\b/d" /etc/trojan/.trojan.db
+fi
+echo "#! ${user} ${exp} ${uuid} ${Quota} ${iplimit}" >>/etc/trojan/.trojan.db
+
+systemctl restart xray > /dev/null 2>&1
+		echo sed -i \"/$user/d\" /etc/xray/config.json  | at now + $pup minutes
+
+CHATID=$(grep -E "^#bot# " "/etc/bot/.bot.db" | cut -d ' ' -f 3)
+KEY=$(grep -E "^#bot# " "/etc/bot/.bot.db" | cut -d ' ' -f 2)
+export TIME="10"
+export URL="https://api.telegram.org/bot$KEY/sendMessage"
+sensor=$(echo "$user" | sed 's/\(.\{3\}\).*/\1xxx/')
+ISP=$(curl -s ipinfo.io/org | cut -d " " -f 2-10 )
+TEXT="
+<b>-----------------------------------------</b>
+<b>TRANSACTION SUCCESSFUL</b>
+<b>-----------------------------------------</b>
+<b>» Produk : Trial Trojan</b>
+<b>» ISP :</b> <code>${ISP}</code>
+<b>» Limit Quota :</b> <code>${Quota} GB</code>
+<b>» Limit Login :</b> <code>${iplimit} Hp</code>
+<b>» Username :</b> <code>$sensor</code>
+<b>» Duration :</b> <code>${pup} Minutes</code>
+<b>-----------------------------------------</b>
+<i>Automatic Notification From Server</i>
+<b>-----------------------------------------</b>"
+
+curl -s --max-time $TIME -d "chat_id=$CHATID&disable_web_page_preview=1&text=$TEXT&parse_mode=html" $URL >/dev/null		
+sleep 0.5
+clear
+echo -e ""
+echo -e "\033[1;93m-----------------------------------------\033[0m"
+echo -e "Trial Trojan Account"
+echo -e "\033[1;93m-----------------------------------------\033[0m"
+echo -e "Remarks          : ${user}" 
+echo -e "Host/IP          : ${domain}"
+echo -e "User Quota       : ${Quota} GB"
+echo -e "User Ip          : ${iplimit} IP"
+echo -e "Port             : 443,8443" 
+echo -e "Key              : ${uuid}" 
+echo -e "Path             : /trojan-ws/multi-path"
+echo -e "ServiceName      : trojan-grpc" 
+echo -e "\033[1;93m-----------------------------------------\033[0m" 
+echo -e "Link TLS         : ${trojanlink}" 
+echo -e "\033[1;93m-----------------------------------------\033[0m" 
+echo -e "Link GRPC        : ${trojanlink1}" 
+echo -e "\033[1;93m-----------------------------------------\033[0m" 
+echo -e "Format OpenClash : https://${domain}:81/trojan-$user.txt" 
+echo -e "\033[1;93m-----------------------------------------\033[0m" 
+echo -e "Dibuat Pada      : $tnggl"
+echo -e "Aktif Selama     : $pup Minutes"
+echo -e "\033[1;93m-----------------------------------------\033[0m" 
+echo "" 
+read -n 1 -s -r -p "Press any key to back on menu"
+m-trojan

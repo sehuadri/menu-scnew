@@ -1,0 +1,40 @@
+#!/bin/bash
+clear
+IGreen='\033[0;92m'
+BIYellow='\033[1;93m'
+BIWhite='\033[1;97m'
+bggreen='\e[42;97;1m'
+NC='\e[0m'
+clear
+echo -e "${BIWhite}┌─────────────────────────────────────────────┐${NC}"
+echo -e "${BIWhite}│ ${bggreen}             PORT SERVICE INFO             \033[0m ${BIWhite}│${NC}"
+echo -e "${BIWhite}└─────────────────────────────────────────────┘${NC}"
+echo -e "${BIWhite}┌─────────────────────────────────────────────┐${NC}"
+echo -e "${BIWhite}│   ${BIWhite}Service & Port:${NC}"
+echo -e "${BIWhite}│   ${BIYellow}- Open SSH                :${NC} 22"
+echo -e "${BIWhite}│   ${BIYellow}- UDP CUSTOM              :${NC} 1-65535"
+echo -e "${BIWhite}│   ${BIYellow}- Dropbear                :${NC} 109, 143"
+echo -e "${BIWhite}│   ${BIYellow}- Slowdns                 :${NC} 2222,2269"
+echo -e "${BIWhite}│   ${BIYellow}- Noobzvpns None TLS      :${NC} 2082"
+echo -e "${BIWhite}│   ${BIYellow}- Noobzvpns TLS           :${NC} 2083"
+echo -e "${BIWhite}│   ${BIYellow}- SSH WS None TLS         :${NC} 80,8080,2086,8880"
+echo -e "${BIWhite}│   ${BIYellow}- SSH WS/TLS              :${NC} 443,8443"
+echo -e "${BIWhite}│   ${BIYellow}- SSH SSL/TLS             :${NC} 443"
+echo -e "${BIWhite}│   ${BIYellow}- Nginx Webserver         :${NC} 81"
+echo -e "${BIWhite}│   ${BIYellow}- XRAY Vmess TLS          :${NC} 443,8443"
+echo -e "${BIWhite}│   ${BIYellow}- XRAY Vmess gRPC         :${NC} 443,8443"
+echo -e "${BIWhite}│   ${BIYellow}- XRAY Vmess None TLS     :${NC} 80,8080,2086,8880"
+echo -e "${BIWhite}│   ${BIYellow}- XRAY Vless TLS          :${NC} 443,8443"
+echo -e "${BIWhite}│   ${BIYellow}- XRAY Vless gRPC         :${NC} 443,8443"
+echo -e "${BIWhite}│   ${BIYellow}- XRAY Vless None TLS     :${NC} 80,8080,2086,8880"
+echo -e "${BIWhite}│   ${BIYellow}- Trojan gRPC             :${NC} 443,8443"
+echo -e "${BIWhite}│   ${BIYellow}- Trojan WS               :${NC} 443,8443"
+echo -e "${BIWhite}│   ${BIYellow}- Shadowsocks WS          :${NC} 80,8080,2086,8880"
+echo -e "${BIWhite}│   ${BIYellow}- Shadowsocks TLS         :${NC} 443,8443"
+echo -e "${BIWhite}│   ${BIYellow}- BadVPN 1                :${NC} 7100"
+echo -e "${BIWhite}│   ${BIYellow}- BadVPN 2                :${NC} 7200"
+echo -e "${BIWhite}│   ${BIYellow}- BadVPN 3                :${NC} 7300"
+echo -e "${BIWhite}└─────────────────────────────────────────────┘${NC}"
+echo ""
+read -n 1 -s -r -p "Press any key to back on menu"
+m-setting

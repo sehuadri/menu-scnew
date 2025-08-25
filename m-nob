@@ -1,0 +1,362 @@
+#!/bin/bash
+clear
+PERMISSION() {
+    MYIP=$(curl -sS ipv4.icanhazip.com)
+
+    TODAY_DATE=$(date +'%Y-%m-%d')
+
+    AUTHORIZED_ENTRY=$(curl -sS https://raw.githubusercontent.com/sehuadri/project/main/ip | grep -w "$MYIP" | head -1)
+
+    if [[ -n "$AUTHORIZED_ENTRY" ]]; then
+        # IP_FROM_ENTRY sekarang adalah field ke-4
+        IP_FROM_ENTRY=$(echo "$AUTHORIZED_ENTRY" | awk '{print $4}')
+        # EXP_DATE_OR_LIFETIME_STATUS sekarang adalah field ke-3
+        EXP_DATE_OR_LIFETIME_STATUS=$(echo "$AUTHORIZED_ENTRY" | awk '{print $3}') 
+
+        if [ "$MYIP" = "$IP_FROM_ENTRY" ]; then
+            # Cek apakah statusnya 'lifetime'
+            if [[ "$EXP_DATE_OR_LIFETIME_STATUS" == "lifetime" ]]; then
+                echo -e "\033[1;92mPermission Accepted (Lifetime User)\033[0m"
+                echo -e "\033[1;97mAkses Di Izinkan (Pengguna Lifetime)${NC}"
+            # Jika bukan 'lifetime', baru lakukan perbandingan tanggal
+            elif [[ "$TODAY_DATE" < "$EXP_DATE_OR_LIFETIME_STATUS" ]]; then
+                echo -e "\033[1;92mPermission Accepted\033[0m"
+                echo -e "\033[1;97mAkses Di Izinkan${NC}"
+            elif [[ "$TODAY_DATE" == "$EXP_DATE_OR_LIFETIME_STATUS" ]]; then
+                echo -e "\033[1;93mPermission Accepted (Today is Expiry Date)\033[0m"
+                echo -e "\033[1;97mAkses Di Izinkan (Hari Ini Kadaluarsa)${NC}"
+            else
+                echo -e "\033[1;91mPermission Denied (Expired)\033[0m"
+                echo -e "\033[1;97mAkses Di Tolak (Kadaluarsa)${NC}"
+                read -n 1 -s -r -p "Press [ Enter ] to Exit"
+                exit 1
+            fi
+        else
+            echo -e "\033[1;91mPermission Denied (IP Mismatch)\033[0m"
+            echo -e "\033[1;97mAkses Di Tolak (IP Tidak Cocok)${NC}"
+            read -n 1 -s -r -p "Press [ Enter ] to Exit"
+            exit 1
+        fi
+    else
+        echo -e "\033[1;91mPermission Denied (IP Not Found)\033[0m"
+        echo -e "\033[1;97mAkses Di Tolak (IP Tidak Ditemukan)${NC}"
+        read -n 1 -s -r -p "Press [ Enter ] to Exit"
+        exit 1
+    fi
+}
+
+PERMISSION
+clear
+BIYellow='\033[1;93m'
+BICyan='\033[1;96m'
+BIWhite='\033[1;97m'
+BILime='\e[38;5;155m'
+IGreen='\033[0;92m'
+NC='\e[0m'
+runn='\e[38;5;14m' 
+acc='\e[38;5;146m'
+R1='\e[38;5;155m' 
+R2='\e[38;5;49m'  
+Suffix='\e[0m'
+# Install NoobzVPN
+function ins_noobz() {
+  clear
+  echo -e "${runn} Installing NoobzVPN...${Suffix}"
+  
+  # Download the NoobzVPN zip file
+  wget https://raw.githubusercontent.com/sehuadri/project/main/noobzvpns.zip
+  
+  # Unzip the downloaded file
+  unzip noobzvpns.zip
+  
+  # Remove the zip file after extraction
+  rm -rf noobzvpns.zip noobzvpns.zip.1 noobzvpns.zip.2 noobzvpns.zip.3 noobzvpns.zip.4
+  
+  # Navigate to the unzipped directory
+  cd noobzvpns
+  
+  # Give execute permission to the install script
+  chmod +x install.sh
+  
+  # Run the install script
+  ./install.sh
+  
+  # Start and restart the NoobzVPN service
+  systemctl start noobzvpns
+  systemctl restart noobzvpns
+  
+  # Notify the user of successful installation
+  echo -e "${acc} NoobzVPN successfully installed! ${Suffix}"
+  
+  # Wait for the user to press a key before returning to the menu
+  read -n 1 -s -r -p "Press [ Enter ] to Return"
+  m-nob
+}
+
+# Uninstall NoobzVPN
+function uninstall_noobz() {
+  clear
+  echo -e "${runn} Uninstalling NoobzVPN...${Suffix}"
+  systemctl stop noobzvpns
+  systemctl disable noobzvpns
+  rm -rf /etc/noobzvpns
+  rm -rf /usr/local/bin/noobzvpns
+  rm -f /etc/systemd/system/noobzvpns.service
+  echo -e "${acc} NoobzVPN successfully uninstalled! ${Suffix}"
+  read -n 1 -s -r -p "Press [ Enter ] to Return"
+  m-nob
+
+}
+
+# Restart NoobzVPN
+function restart_noobz() {
+  clear
+  echo -e "${runn} Restarting NoobzVPN...${Suffix}"
+  systemctl restart noobzvpns
+  echo -e "${acc} NoobzVPN successfully restarted! ${Suffix}"
+  read -n 1 -s -r -p "Press [ Enter ] to Return"
+  m-nob
+}
+
+# Add NoobzVPN user
+function add_noobvpn_user() {
+  clear
+
+  # Input data
+  read -p "Username: " username
+  read -p "Password: " pass
+  read -p "Expired : " masaaktif
+  read -p "Limit IP: " ip
+  read -p "Limit Quota (GB): " Quota
+
+  # Validasi masa aktif
+  if [[ -z "$masaaktif" || "$masaaktif" =~ [^0-9] ]]; then
+    echo "Invalid expiration input. Please input a valid number of days."
+    exit 1
+  fi
+
+  # Hitung tanggal kedaluwarsa
+  if [[ "$masaaktif" -eq 0 ]]; then
+    expe="Unlimited"
+  else
+    tgl=$(date -d "$masaaktif days" +"%d")
+    bln=$(date -d "$masaaktif days" +"%b")
+    thn=$(date -d "$masaaktif days" +"%Y")
+    expe="$tgl $bln, $thn"
+  fi
+
+  # Buat akun dengan noobzvpns
+  if noobzvpns --add-user "$username" "$pass" --expired-user "$username" "$expe"; then
+    echo "[INFO] Account $username successfully created!"
+  else
+    echo "[ERROR] Failed to create account $username."
+    exit 1
+  fi
+
+  # Simpan pembatasan IP
+  mkdir -p /etc/limit/noobzvpns/ip/
+  echo "$ip" > "/etc/limit/noobzvpns/ip/$username"
+
+  # Set limit kuota data
+  Quota=${Quota:-0}
+  c=$(echo "$Quota" | sed 's/[^0-9]//g')
+  if [[ "$c" -gt 0 ]]; then
+    d=$((c * 1024 * 1024 * 1024))
+    echo "$d" > "/etc/noobzvpns/$username"
+  fi
+
+  # Update database lokal
+  mkdir -p /etc/noobzvpns/
+  touch /etc/noobzvpns/.noobzvpns.db
+  sed -i "/\b$username\b/d" /etc/noobzvpns/.noobzvpns.db
+  echo "#nob# $username $pass $ip $Quota $expe" >> "/etc/noobzvpns/.noobzvpns.db"
+
+  # Simpan detail akun
+  mkdir -p /detail/nob/
+  cat > /detail/nob/$username.txt <<-END
+---------------------------------------------
+DETAIL ACCOUNT
+---------------------------------------------
+Host             : $(cat /etc/xray/domain)
+Username         : $username
+Password         : $pass
+Port Non TLS     : 2082
+Port TLS         : 2083
+Limit IP         : $ip IP
+Limit Quota      : $Quota GB
+---------------------------------------------
+Aktif Hingga     : $expe
+---------------------------------------------
+END
+
+  # Kirim notifikasi Telegram
+  if [ -f "/etc/bot/.bot.db" ]; then
+    CHATID=$(grep -E "^#bot# " "/etc/bot/.bot.db" | cut -d ' ' -f 3)
+    KEY=$(grep -E "^#bot# " "/etc/bot/.bot.db" | cut -d ' ' -f 2)
+    export TIME="10"
+    export URL="https://api.telegram.org/bot$KEY/sendMessage"
+
+    # Sensor username (3 huruf pertama saja)
+    sensor=$(echo "$username" | cut -c1-3)xxx
+    domain=$(cat /etc/xray/domain)
+    ISP=$(curl -s ipinfo.io/org | cut -d " " -f 2-10)
+
+    TEXT="
+<b>-----------------------------------------</b>
+<b>TRANSACTION SUCCESSFUL</b>
+<b>-----------------------------------------</b>
+<b>» Produk : Noobzvpns</b>
+<b>» ISP :</b> <code>${ISP}</code>
+<b>» Host/IP :</b> <code>${domain}</code>
+<b>» Limit Login :</b> <code>${ip} Hp</code>
+<b>» Limit Quota :</b> <code>${Quota} GB</code>
+<b>» Username :</b> <code>${sensor}</code>
+<b>» Duration :</b> <code>${masaaktif} Days</code>
+<b>-----------------------------------------</b>
+<i>Automatic Notification From Server</i>
+<b>-----------------------------------------</b>
+"
+
+    curl -s --max-time $TIME -d "chat_id=$CHATID&disable_web_page_preview=1&text=$TEXT&parse_mode=html" "$URL" >/dev/null
+  else
+    echo "[WARNING] Bot configuration file not found. Telegram notification skipped."
+  fi
+  clear
+  echo -e "NOOBZVPNS ACCOUNT"
+  echo -e ""
+  echo -e "Host             : $(cat /etc/xray/domain)"
+  echo -e "Username         : $username"
+  echo -e "Password         : $pass"
+  echo -e "Port Non TLS     : 2082"
+  echo -e "Port TLS         : 2083"
+  echo -e "Limit IP         : $ip IP"
+  echo -e "Limit Quota      : $Quota GB"
+  echo -e "Aktif Hingga     : $expe"
+  echo -e ""
+  read -n 1 -s -r -p "Press [ Enter ] to Return"
+  m-nob
+}
+
+# Other user-related functions
+function block_user() {
+    read -p "Enter username to block: " username
+    noobzvpns --block-user "$username"
+    read -n 1 -s -r -p "Press [ Enter ] to Return"
+    m-nob
+}
+
+function unblock_user() {
+    read -p "Enter username to unblock: " username
+    noobzvpns --unblock-user "$username"
+    read -n 1 -s -r -p "Press [ Enter ] to Return"
+    m-nob
+}
+
+function set_expiration() {
+    read -p "Enter username: " username
+    read -p "Enter expiration days (0 for unlimited): " days
+    noobzvpns --expired-user "$username" "$days"
+    read -n 1 -s -r -p "Press [ Enter ] to Return"
+    m-nob
+}
+
+function renew_expiration() {
+    read -p "Enter username to renew expiration: " username
+    noobzvpns --renew-user "$username"
+    read -n 1 -s -r -p "Press [ Enter ] to Return"
+    m-nob
+}
+
+function change_password() {
+    read -p "Enter username: " username
+    read -p "Enter new password: " new_password
+    noobzvpns --password-user "$username" "$new_password"
+    read -n 1 -s -r -p "Press [ Enter ] to Return"
+    m-nob
+}
+
+function rename_user() {
+    read -p "Enter current username: " old_username
+    read -p "Enter new username: " new_username
+    noobzvpns --rename-user "$old_username" "$new_username"
+    read -n 1 -s -r -p "Press [ Enter ] to Return"
+    m-nob
+}
+
+function remove_user() {
+    read -p "Enter username to remove: " username
+    noobzvpns --remove-user "$username"
+    read -n 1 -s -r -p "Press [ Enter ] to Return"
+    m-nob
+}
+
+function remove_all_users() {
+    read -p "Are you sure you want to remove all users? (yes/no): " confirm
+    if [ "$confirm" == "yes" ]; then
+        noobzvpns --remove-all-user
+    else
+        echo "Operation cancelled."
+    fi
+    read -n 1 -s -r -p "Press [ Enter ] to Return"
+    m-nob
+}
+
+function info_user() {
+    read -p "Enter username: " username
+    noobzvpns --info-user "$username"
+    read -n 1 -s -r -p "Press [ Enter ] to Return"
+    m-nob
+}
+
+function info_all_users() {
+    noobzvpns --info-all-user
+    read -n 1 -s -r -p "Press [ Enter ] to Return"
+    m-nob
+}
+
+# Main menu
+clear
+echo -e "${BIWhite}──────────────────────────────────────${NC}"
+echo -e "${BIYellow}NOOBZVPNS MANAGER${NC}"
+echo -e "${BIWhite}──────────────────────────────────────${NC}"
+echo -e "${IGreen}[${BIWhite}01${IGreen}] ${NC}${BIWhite}Install${NC}"
+echo -e "${IGreen}[${BIWhite}02${IGreen}] ${NC}${BIWhite}Uninstall${NC}"
+echo -e "${IGreen}[${BIWhite}03${IGreen}] ${NC}${BIWhite}Restart${NC}"
+echo -e "${IGreen}[${BIWhite}04${IGreen}] ${NC}${BIWhite}Create${NC}"
+echo -e "${IGreen}[${BIWhite}05${IGreen}] ${NC}${BIWhite}Lock${NC}"
+echo -e "${IGreen}[${BIWhite}06${IGreen}] ${NC}${BIWhite}Unlock${NC}"
+echo -e "${IGreen}[${BIWhite}07${IGreen}] ${NC}${BIWhite}Set Expiretion${NC}"
+echo -e "${IGreen}[${BIWhite}08${IGreen}] ${NC}${BIWhite}Renew${NC}"
+echo -e "${IGreen}[${BIWhite}09${IGreen}] ${NC}${BIWhite}Change Password${NC}"
+echo -e "${IGreen}[${BIWhite}10${IGreen}] ${NC}${BIWhite}Rename User${NC}"
+echo -e "${IGreen}[${BIWhite}11${IGreen}] ${NC}${BIWhite}Remove User${NC}"
+echo -e "${IGreen}[${BIWhite}12${IGreen}] ${NC}${BIWhite}Remove All Users${NC}"
+echo -e "${IGreen}[${BIWhite}13${IGreen}] ${NC}${BIWhite}Info User${NC}"
+echo -e "${IGreen}[${BIWhite}14${IGreen}] ${NC}${BIWhite}Info All Users${NC}"
+echo -e "${IGreen}[${BIWhite}15${IGreen}] ${NC}${BIWhite}Detail Account Users${NC}"
+echo -e "${BIWhite}──────────────────────────────────────${NC}"
+echo -e "${BIYellow}Input x or [ Ctrl+C ] • To-${BIWhite}Exit${NC}"
+echo -e "${BIWhite}──────────────────────────────────────${NC}"
+echo ""
+read -p "Select menu :" opt
+echo -e ""
+case $opt in
+1) clear ; ins_noobz ;;
+2) clear ; uninstall_noobz ;;
+3) clear ; restart_noobz ;;
+4) clear ; add_noobvpn_user ;;
+5) clear ; block_user ;;
+6) clear ; unblock_user ;;
+7) clear ; set_expiration ;;
+8) clear ; renew_expiration ;;
+9) clear ; change_password ;;
+10) clear ; rename_user ;;
+11) clear ; remove_user ;;
+12) clear ; remove_all_users ;;
+13) clear ; info_user ;;
+14) clear ; info_all_users ;;
+15) clear ; usernob ;;
+0) clear ; menu ; exit ;;
+x) menu ;;
+*) echo "anda salah tekan" ; sleep 1 ; m-nob ;;
+esac

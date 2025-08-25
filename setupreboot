@@ -1,0 +1,83 @@
+#!/bin/bash
+clear
+BIWhite='\033[1;97m'
+BIYellow='\033[1;93m'
+NC='\033[0m'
+green='\033[0;32m'
+
+# Direktori dan File
+LOG_FILE="/root/log-install.txt"
+RE_OTM_FILE="/home/re_otm"
+CRON_FILE="/etc/cron.d/re_otm"
+
+# Persiapan
+mkdir -p "$(dirname "$LOG_FILE")"
+touch "$LOG_FILE" "$RE_OTM_FILE"
+
+dateFromServer=$(curl -sI https://google.com/ 2>/dev/null | grep -i ^date: | sed 's/Date: //;s/\r//')
+
+# Baca Waktu Saat Ini
+aureb=$(cat "$RE_OTM_FILE" 2>/dev/null || echo "0")
+b=11
+if [ "$aureb" -gt "$b" ]; then
+    gg="PM"
+else
+    gg="AM"
+fi
+
+# Tampilan Menu
+clear
+echo -e "${BIWhite}──────────────────────────────────────${NC}"
+echo -e "${BIYellow}AUTOREBOOT SETUP${NC}"
+echo -e "${BIWhite}──────────────────────────────────────${NC}"
+echo -e "
+${BIWhite}    Example :${NC} ${BIYellow}
+    0     = 12 PM
+    12    = 12 AM
+    13-23 = 1 AM - 11 PM
+    1-11  = 1 PM - 11 AM
+${NC}"
+echo -e "${BIWhite}──────────────────────────────────────${NC}"
+echo -e "    ${BIWhite}Current :${NC} ${BIYellow}$aureb $gg ${NC}"
+echo -e "${BIWhite}──────────────────────────────────────${NC}"
+
+# Input Waktu
+while :; do
+    read -p "Input time auto reboot (0-23): " tr2
+    [[ $tr2 =~ ^[0-9]+$ ]] || { echo "Invalid input, please enter a number."; continue; }
+    if ((tr2 >= 0 && tr2 <= 23)); then
+        break
+    else
+        echo "Input must be between 0 and 23."
+    fi
+done
+
+# Set Autoreboot
+if [ -z "$tr2" ]; then
+    echo "No input provided. Exiting..."
+    exit 0
+fi
+
+echo "$tr2" > "$RE_OTM_FILE"
+cat > "$CRON_FILE" <<-END
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+0 $tr2 * * * root /sbin/reboot
+END
+
+if [ "$tr2" -le 11 ]; then
+    sed -i "/Autoreboot/c\   - Autoreboot On           : $tr2:00 AM [GMT+7]" "$LOG_FILE" 2>/dev/null || echo "   - Autoreboot On           : $tr2:00 AM [GMT+7]" >> "$LOG_FILE"
+    echo -e "${green}Successfully changed the auto reboot VPS to: $tr2 AM ${NC}"
+else
+    sed -i "/Autoreboot/c\   - Autoreboot On           : $tr2:00 PM [GMT+7]" "$LOG_FILE" 2>/dev/null || echo "   - Autoreboot On           : $tr2:00 PM [GMT+7]" >> "$LOG_FILE"
+    echo -e "${green}Successfully changed the auto reboot VPS to: $tr2 PM ${NC}"
+fi
+
+# Restart Cron Service
+service cron restart >/dev/null 2>&1
+service cron reload >/dev/null 2>&1
+
+# Selesai
+echo ""
+read -n 1 -s -r -p "Press any key to return to the menu"
+menu
