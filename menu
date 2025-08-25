@@ -169,7 +169,7 @@ calculate_cpu_load() {
     fi
 }
 status_ssh=$(check_service ssh)
-status_ws=$(check_service ws-stunnel)
+status_ws=$(check_service ws)
 status_xray=$(check_service xray)
 status_nginx=$(check_service nginx)
 status_dropbear=$(check_service dropbear)
