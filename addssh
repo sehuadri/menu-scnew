@@ -31,9 +31,9 @@ clear
 	done
 read -p "Password : " Pass
 while true; do
-    read -p "Limit IP : " iplimit
+    read -p "Expired  : " masaaktif
     read -p "Limit GB : " Quota
-    read -p "Expired  : " masaaktif 
+    read -p "Limit IP : " iplimit
 
     if [[ "$masaaktif" =~ ^[0-9]+$ && "$Quota" =~ ^[0-9]+$ && "$iplimit" =~ ^[0-9]+$ ]]; then
         break
@@ -168,12 +168,12 @@ TEXT="
 <b>-----------------------------------------</b>
 <b>TRANSACTION SUCCESSFUL</b>
 <b>-----------------------------------------</b>
-<b>» Produk : SSH</b>
-<b>» ISP :</b> <code>${ISP}</code>
-<b>» Limit Quota :</b> <code>${Quota} GB</code>
-<b>» Limit Login :</b> <code>${iplimit} Hp</code>
-<b>» Username :</b> <code>${sensor}</code>
-<b>» Duration :</b> <code>${masaaktif} Days</code>
+<b>Â» Produk : SSH</b>
+<b>Â» ISP :</b> <code>${ISP}</code>
+<b>Â» Limit Quota :</b> <code>${Quota} GB</code>
+<b>Â» Limit Login :</b> <code>${iplimit} Hp</code>
+<b>Â» Username :</b> <code>${sensor}</code>
+<b>Â» Duration :</b> <code>${masaaktif} Days</code>
 <b>-----------------------------------------</b>
 <i>Automatic Notification From Server</i>
 <b>-----------------------------------------</b>
