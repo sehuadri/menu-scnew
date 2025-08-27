@@ -102,5 +102,6 @@ case $opt in
 4) clear ; del-give ;;
 0) clear ; m-bot ; exit ;;
 x) clear ; menu ;;
-*) echo "anda salah tekan" ; sleep 1 ; m-give ;;
+*) echo "anda salah tekan" ; sleep 1 ; m-giv ;;
 esac
+
