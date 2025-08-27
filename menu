@@ -263,7 +263,7 @@ echo -e "  ${BIWhite}[${BIWhite}03${BIWhite}]${NC} ${BIWhite}• ${BIWhite}VLESS
 echo -e "  ${BIWhite}[${BIWhite}04${BIWhite}]${NC} ${BIWhite}• ${BIWhite}TROJAN   ${BIWhite}[${BIWhite}${status_xray}${BIWhite}]   ${BIWhite}[${BIWhite}12${BIWhite}]${NC} ${BIWhite}• ${BIWhite}restart   ${BIWhite}[${BIWhite}Menu${BIWhite}]  ${BIWhite} $NC"  
 echo -e "  ${BIWhite}[${BIWhite}05${BIWhite}]${NC} ${BIWhite}• ${BIWhite}SHADOWSK ${BIWhite}[${BIWhite}${status_xray}${BIWhite}]   ${BIWhite}[${BIWhite}13${BIWhite}]${NC} ${BIWhite}• ${BIWhite}RUNNING   ${BIWhite}[${BIWhite}Menu${BIWhite}]  ${BIWhite} $NC"
 echo -e "  ${BIWhite}[${BIWhite}06${BIWhite}]${NC} ${BIWhite}• ${BIWhite}Noobzvpn ${BIWhite}[${BIWhite}${status_noobzvpns}${BIWhite}]   ${BIWhite}[${BIWhite}14${BIWhite}]${NC} ${BIWhite}• ${BIWhite}REboot    ${BIWhite}[${BIWhite}Menu${BIWhite}]  ${BIWhite} $NC"
-echo -e "  ${BIWhite}[${BIWhite}07${BIWhite}]${NC} ${BIWhite}• ${BIWhite}Slowdns  ${BIWhite}[${BIWhite}${status_slow}${BIWhite}]   ${BIWhite}[${BIWhite}15${BIWhite}]${NC} ${BIWhite}• ${BIWhite}UPDATE    ${BIWhite}[${BIWhite}Menu${BIWhite}]  ${BIWhite} $NC"
+echo -e "  ${BIWhite}[${BIWhite}07${BIWhite}]${NC} ${BIWhite}• ${BIWhite}WILDCARD ${BIWhite}[${BIWhite}${status_xray}${BIWhite}]   ${BIWhite}[${BIWhite}15${BIWhite}]${NC} ${BIWhite}• ${BIWhite}UPDATE    ${BIWhite}[${BIWhite}Menu${BIWhite}]  ${BIWhite} $NC"
 echo -e "  ${BIWhite}[${BIWhite}08${BIWhite}]${NC} ${BIWhite}• ${BIWhite}BAner    ${BIWhite}[${BIWhite}${status_xray}${BIWhite}]   ${BIWhite}[${BIWhite}16${BIWhite}]${NC} ${BIWhite}• ${BIWhite}SETTING   ${BIWhite}[${BIWhite}Menu${BIWhite}]  ${BIWhite} $NC"  
 echo -e "${BIWhite}└─────────────────────────────────────────────────┘${NC}"
 echo -e "$BIWhite┌─────────────────────────────────────────────────┐${NC}"
@@ -286,7 +286,7 @@ case $opt in
 4) clear ; m-trojan ;;
 5) clear ; m-shadowsocks ;;
 6) clear ; m-nob ;;
-7) clear ; m-slowdns ;;
+7) clear ; wildcard_auto ;;
 8) clear ; nano /etc/banner-ssh.txt ; read -n 1 -s -r -p "Press [ Enter ] to back on menu" ; menu ;;
 9) clear ; m-bot ;;
 10) clear ; m-bot-notif ;;
