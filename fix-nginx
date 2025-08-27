@@ -20,7 +20,7 @@ GREEN='\033[0;32m'
 ORANGE='\033[0;33m'
 LIGHT='\033[0;37m'
 grenbo="\e[92;1m"
-REPO="https://raw.githubusercontent.com/sehuadri/project/main/config/"
+REPO="https://raw.githubusercontent.com/sehuadri/scnew/main/install/"
 clear
 echo -e "${BIWhite}──────────────────────────────────────${NC}"
 echo -e "${BIYellow}FIX NGINX & HAPROXY OFF${NC}"
