@@ -98,7 +98,7 @@ echo -e ""
 case $opt in
 1) clear ; m-private ;;
 2) clear ; m-public ;;
-3) clear ; m-give ;;
+3) clear ; m-giv ;;
 4) clear ; m-regis ;;
 0) clear ; menu ; exit ;;
 x) clear ; menu ;;
