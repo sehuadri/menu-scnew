@@ -59,4 +59,4 @@ rm -rf give give2 give3 give4 give5 give.zip give.zip.1 give.zip.2 give.zip.3 gi
 echo -e "\e[5;32mSuccessfully Delete Bot Give\e[0m"
 sleep 1
 read -n 1 -s -r -p "Press [ Enter ] to back on menu"
-m-give
+m-giv
