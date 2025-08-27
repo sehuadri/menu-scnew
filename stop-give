@@ -52,4 +52,4 @@ fun_bar 'res1'
 echo -e "\e[5;32mSuccessfully Stop Bot Give\e[0m"
 sleep 1
 read -n 1 -s -r -p "Press [ Enter ] to back on menu"
-m-give
+m-giv
