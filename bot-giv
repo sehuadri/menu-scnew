@@ -196,4 +196,4 @@ clear
 echo -e "\e[5;32mSuccessfully Installed Bot give, type /start on your bot\e[0m"
 sleep 1
 read -n 1 -s -r -p "Press [ Enter ] to return to menu"
-m-give
+m-giv
