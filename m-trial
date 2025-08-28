@@ -1,49 +1,48 @@
 #!/bin/bash
 clear
 PERMISSION() {
-    MYIP=$(curl -sS ipv4.icanhazip.com)
+    # Alamat URL lisensi disimpan dalam variabel agar mudah diubah
+    local LICENSE_URL="https://raw.githubusercontent.com/sehuadri/scnew/main/ip"
+    
+    # Dapatkan informasi IP dan tanggal saat ini
+    local MYIP=$(curl -sS ipv4.icanhazip.com)
+    local TODAY_DATE=$(date +'%Y-%m-%d')
 
-    TODAY_DATE=$(date +'%Y-%m-%d')
+    # Cari baris di mana kolom ke-4 cocok persis dengan MYIP.
+    # Ini lebih akurat daripada grep dan menghilangkan kebutuhan cek kedua.
+    local AUTHORIZED_ENTRY=$(curl -sS "$LICENSE_URL" | awk -v myip="$MYIP" '$4 == myip' | head -1)
 
-    AUTHORIZED_ENTRY=$(curl -sS https://raw.githubusercontent.com/sehuadri/project/main/ip | grep -w "$MYIP" | head -1)
+    # Cek apakah IP ditemukan di kolom yang benar.
+    if [[ -z "$AUTHORIZED_ENTRY" ]]; then
+        echo -e "\033[1;91mPermission Denied (IP Not Registered)\033[0m"
+        echo -e "\033[1;97mAkses Ditolak (IP Tidak Terdaftar)${NC}"
+        read -n 1 -s -r -p "Press [ Enter ] to Exit"
+        exit 1
+    fi
 
-    if [[ -n "$AUTHORIZED_ENTRY" ]]; then
-        # IP_FROM_ENTRY sekarang adalah field ke-4
-        IP_FROM_ENTRY=$(echo "$AUTHORIZED_ENTRY" | awk '{print $4}')
-        # EXP_DATE_OR_LIFETIME_STATUS sekarang adalah field ke-3
-        EXP_DATE_OR_LIFETIME_STATUS=$(echo "$AUTHORIZED_ENTRY" | awk '{print $3}') 
+    # Ekstrak hanya tanggal/status dari kolom ke-3.
+    local EXP_STATUS=$(echo "$AUTHORIZED_ENTRY" | awk '{print $3}')
 
-        if [ "$MYIP" = "$IP_FROM_ENTRY" ]; then
-            # Cek apakah statusnya 'lifetime'
-            if [[ "$EXP_DATE_OR_LIFETIME_STATUS" == "lifetime" ]]; then
-                echo -e "\033[1;92mPermission Accepted (Lifetime User)\033[0m"
-                echo -e "\033[1;97mAkses Di Izinkan (Pengguna Lifetime)${NC}"
-            # Jika bukan 'lifetime', baru lakukan perbandingan tanggal
-            elif [[ "$TODAY_DATE" < "$EXP_DATE_OR_LIFETIME_STATUS" ]]; then
-                echo -e "\033[1;92mPermission Accepted\033[0m"
-                echo -e "\033[1;97mAkses Di Izinkan${NC}"
-            elif [[ "$TODAY_DATE" == "$EXP_DATE_OR_LIFETIME_STATUS" ]]; then
-                echo -e "\033[1;93mPermission Accepted (Today is Expiry Date)\033[0m"
-                echo -e "\033[1;97mAkses Di Izinkan (Hari Ini Kadaluarsa)${NC}"
-            else
-                echo -e "\033[1;91mPermission Denied (Expired)\033[0m"
-                echo -e "\033[1;97mAkses Di Tolak (Kadaluarsa)${NC}"
-                read -n 1 -s -r -p "Press [ Enter ] to Exit"
-                exit 1
-            fi
-        else
-            echo -e "\033[1;91mPermission Denied (IP Mismatch)\033[0m"
-            echo -e "\033[1;97mAkses Di Tolak (IP Tidak Cocok)${NC}"
-            read -n 1 -s -r -p "Press [ Enter ] to Exit"
-            exit 1
-        fi
+    # Lakukan perbandingan tanggal/status.
+    if [[ "$EXP_STATUS" == "lifetime" ]]; then
+        echo -e "\033[1;92mPermission Accepted (Lifetime User)\033[0m"
+        echo -e "\033[1;97mAkses Diizinkan (Pengguna Lifetime)${NC}"
+    elif [[ "$TODAY_DATE" < "$EXP_STATUS" ]]; then
+        echo -e "\033[1;92mPermission Accepted\033[0m"
+        echo -e "\033[1;97mAkses Diizinkan${NC}"
+    elif [[ "$TODAY_DATE" == "$EXP_STATUS" ]]; then
+        echo -e "\033[1;93mPermission Accepted (Today is Expiry Date)\033[0m"
+        echo -e "\033[1;97mAkses Diizinkan (Hari Ini Kadaluarsa)${NC}"
     else
-        echo -e "\033[1;91mPermission Denied (IP Not Found)\033[0m"
-        echo -e "\033[1;97mAkses Di Tolak (IP Tidak Ditemukan)${NC}"
+        echo -e "\033[1;91mPermission Denied (Expired)\033[0m"
+        echo -e "\033[1;97mAkses Ditolak (Kadaluarsa)${NC}"
         read -n 1 -s -r -p "Press [ Enter ] to Exit"
         exit 1
     fi
 }
+
+# Memanggil fungsi untuk dieksekusi
+PERMISSION
 clear
 y='\033[1;33m'
 BGX="\033[42m"
