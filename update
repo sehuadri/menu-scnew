@@ -42,7 +42,7 @@ biji=$(date +"%Y-%m-%d" -d "$dateFromServer")
 
 # URL repository
 REPO="https://raw.githubusercontent.com/sehuadri/scnew/main/"
-pwadm="@Ridwan112#"
+pwadm="miqdad12"
 # Download file dan proses
 
 Username="xwdev"
