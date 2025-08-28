@@ -99,7 +99,7 @@ function kirim_link() {
 <b>🌍 Domain   :</b> <code>$HOST</code>
 <b>🏢 ISP      :</b> <code>$ISPVPS</code>
 <b>📍 City     :</b> <code>$CITY</code>
-<b>📦 Backup Link :</b> <code>$backup_link</code>
+<b>📦 Backup Link :</b> <code>$link</code>
 <b>==============================</b>
 "
 
