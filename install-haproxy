@@ -70,12 +70,7 @@ frontend http_frontend
     bind *:80 tfo
     bind *:8080 tfo
     bind *:8880 tfo
-    bind *:8880 tfo
-    bind *:2080 tfo
     bind *:2082 tfo
-    bind *:2052 tfo
-    bind *:2086 tfo
-    bind *:2095 tfo
     
     tcp-request inspect-delay 500ms
     tcp-request content accept if HTTP
@@ -111,7 +106,6 @@ backend ws_backend
 backend grpc_backend
     mode tcp
     server grpc_server 127.0.0.1:1013 check
-
 EOF
 
 echo -e "${BIWhite}✥ Cek konfigurasi HAProxy...${NC}"
