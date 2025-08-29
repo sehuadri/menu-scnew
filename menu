@@ -253,7 +253,7 @@ echo -e "  ${BIWhite}[${BIWhite}07${BIWhite}]${NC} ${BIWhite}• ${BIWhite}WILDC
 echo -e "  ${BIWhite}[${BIWhite}08${BIWhite}]${NC} ${BIWhite}• ${BIWhite}BAner    ${BIWhite}[${BIWhite}${status_xray}${BIWhite}]   ${BIWhite}[${BIWhite}16${BIWhite}]${NC} ${BIWhite}• ${BIWhite}SETTING   ${BIWhite}[${BIWhite}Menu${BIWhite}]  ${BIWhite} $NC"  
 echo -e "${BIWhite}└─────────────────────────────────────────────────┘${NC}"
 echo -e "$BIWhite┌─────────────────────────────────────────────────┐${NC}"
-echo -e "${BIWhite} ORDER NAME :${NC} ${BIYellow}$username${NC}"
+echo -e "${BIWhite} ORDER NAME :${NC} ${BIYellow}$USERNAME${NC}"
 echo -e "${BIWhite} Exp SCRIPT :${NC} $EXPIRE_INFO"
 echo -e "$BIWhite└─────────────────────────────────────────────────┘${NC}"
 echo -e "$BIWhite┌─────────────────────────────────────────────────┐${NC}"
