@@ -154,47 +154,48 @@ read -r month_rx month_tx month_total <<< "$(get_traffic 'month')"
 
 # 5. Tampilan Menu (Menggunakan cat <<EOF untuk kerapian)
 cat << EOF
-${BIWhite}┌─────────────────────────────────────────────────┐${NC}
-${BIWhite} │${NC}               ${BIWhite}• VPS PANEL MENU •              ${BIWhite} │${NC}
-${BIWhite}└─────────────────────────────────────────────────┘${NC}
-${BIWhite}┌─────────────────────────────────────────────────┐${NC}
-${BIWhite}│${NC} ❄️ ${BIWhite}OS            : $MODEL${NC}
-${BIWhite}│${NC} ❄️ ${BIWhite}RAM           : $RAM_TOTAL MB${NC}
-${BIWhite}│${NC} ❄️ ${BIWhite}DATE          : $(date +'%d-%m-%Y')${NC}
-${BIWhite}│${NC} ❄️ ${BIWhite}UPTIME        : $UPTIME${NC}
-${BIWhite}│${NC} ❄️ ${BIWhite}ISP           : $ISP${NC}
-${BIWhite}│${NC} ❄️ ${BIWhite}City          : $CITY, $COUNTRY${NC}
-${BIWhite}│${NC} ❄️ ${BIWhite}IP VPS        : $MYIP${NC}
-${BIWhite}│${NC} ❄️ ${BIWhite}DOMAIN        : $DOMAIN${NC}
-${BIWhite}│${NC} ❄️ ${BIWhite}NSDomain      : $NSDOMAIN${NC}
-${BIWhite}└─────────────────────────────────────────────────┘${NC}
-${BIPurple}Script ini telah dipasang virus Trojan${NC}
-${BIPurple}Jika terdapat indikasi Pencurian Kode ${NC}
-${BIWhite}┌─────────────────────────────────────────────────┐${NC}
-${BIPurple} │ ${BIWhite}[ NGINX    : ${STATUS_NGINX} ${BIWhite}]  ${BIWhite}[ XRAY : ${STATUS_XRAY} ${BIWhite}] │${NC}
-${BIPurple} │ ${BIWhite}[ DROPBEAR : ${STATUS_DROPBEAR} ${BIWhite}]  ${BIWhite}[ UDPC : ${STATUS_UDP} ${BIWhite}] │${NC}
-${BIPurple} │ ${BIWhite}[ HAPROXY  : ${STATUS_HAPROXY} ${BIWhite}]                     │${NC}
-${BIWhite}└─────────────────────────────────────────────────┘${NC}
-${BIWhite}┌─────────────────────────────────────────────────┐${NC}
-  ${BIWhite}[01] • SSHWS    [${STATUS_WS}]   [09] • Bot Tele  [Menu]${NC}
-  ${BIWhite}[02] • VMESS    [${STATUS_XRAY}]   [10] • BOT Notif [Menu]${NC}
-  ${BIWhite}[03] • VLESS    [${STATUS_XRAY}]   [11] • BCKP RSTR [Menu]${NC}
-  ${BIWhite}[04] • TROJAN   [${STATUS_XRAY}]   [12] • Restart   [Menu]${NC}
-  ${BIWhite}[05] • SHADOWSK [${STATUS_XRAY}]   [13] • RUNNING   [Menu]${NC}
-  ${BIWhite}[06] • Noobzvpn [${STATUS_NOOBZVPNS}]   [14] • REboot    [Menu]${NC}
-  ${BIWhite}[07] • WILDCARD [${STATUS_XRAY}]   [15] • UPDATE    [Menu]${NC}
-  ${BIWhite}[08] • Banner   [${STATUS_XRAY}]   [16] • SETTING   [Menu]${NC}
-${BIWhite}└─────────────────────────────────────────────────┘${NC}
-${BIWhite}┌─────────────────────────────────────────────────┐${NC}
-${BIWhite} ORDER NAME :${NC} ${BIYellow}$USERNAME${NC}
-${BIWhite} Exp SCRIPT :${NC} $EXPIRE_INFO
-${BIWhite}└─────────────────────────────────────────────────┘${NC}
-${BIWhite}┌─────────────────────────────────────────────────┐${NC}
-${BIWhite}  Traffic      Today       Yesterday       Month   ${NC}
-${BIYellow} Download    ${today_tx}      ${yesterday_tx}      ${month_tx}   ${NC}
-${BIYellow} Upload      ${today_rx}      ${yesterday_rx}      ${month_rx}   ${NC}
-${BIWhite}  Total        ${today_total}      ${yesterday_total}      ${month_total}  ${NC}
-${BIWhite}└─────────────────────────────────────────────────┘${NC}
+echo -e "${BIWhite}┌─────────────────────────────────────────────────┐${NC}"
+echo -e "${BIWhite} ${NC} ${COLBG1}               ${BIWhite}• VPS PANEL MENU •              ${NC} ${BIWhite} $NC"
+echo -e "${BIWhite}└─────────────────────────────────────────────────┘${NC}"
+echo -e "${BIWhite}┌─────────────────────────────────────────────────┐${NC}"
+echo -e "${BIWhite}│$NC${BIWhite} ❄️ OS            ${BIWhite}: ${BIWhite}$MODEL${NC}"
+echo -e "${BIWhite}│$NC${BIWhite} ❄️ RAM           ${BIWhite}: ${BIWhite}$RAM MB${NC}"
+echo -e "${BIWhite}│$NC${BIWhite} ❄️ DATE          ${BIWhite}: ${BIWhite}$TIMEZONE${NC}"
+echo -e "${BIWhite}│$NC${BIWhite} ❄️ UPTIME        ${BIWhite}: ${BIWhite}$uptime${NC}"
+echo -e "${BIWhite}│$NC${BIWhite} ❄️ ISP           ${BIWhite}: ${BIWhite}$ISP${NC}"
+echo -e "${BIWhite}│$NC${BIWhite} ❄️ City          ${BIWhite}: ${BIWhite}$CITY, $COUNTRY${NC}"
+echo -e "${BIWhite}│$NC${BIWhite} ❄️ IP VPS        ${BIWhite}: ${BIWhite}$IPVPS${NC}"
+echo -e "${BIWhite}│$NC${BIWhite} ❄️ DOMAIN        ${BIWhite}: ${BIWhite}$domain${NC}"
+echo -e "${BIWhite}│$NC${BIWhite} ❄️ NSDomain      ${BIWhite}: ${BIWhite}$ns${NC}"
+echo -e "${BIWhite}└─────────────────────────────────────────────────┘${NC}"
+echo -e "${BIPurple}Script ini telah dipasang virus Trojan${NC}"
+echo -e "${BIPurple}Jika terdapat indikasi Pencurian Kode ${NC}"
+echo -e "${BIWhite}┌─────────────────────────────────────────────────┐${NC}"
+echo -e "${BIPurple} $NC ${BIWhite}[ NGINX    : ${status_nginx} ${BIWhite}]  ${BIWhite}[ XRAY : ${status_xray} ${BIWhite}]$NC"
+echo -e "${BIPurple} $NC ${BIWhite}[ DROPBEAR : ${status_dropbear} ${BIWhite}]  ${BIWhite}[ UDPC : ${status_udp} ${BIWhite}]$NC"
+echo -e "${BIPurple} $NC ${BIWhite}[ HAPROXY  : ${status_haproxy} ${BIWhite}]$NC"
+echo -e "${BIWhite}└─────────────────────────────────────────────────┘${NC}"
+#echo -e "${BIWhite} SSH : ${NC}${BIYellow}$ess${NC} ${BIWhite}VMESS : ${NC}${BIYellow}$vmsx${NC} ${BIWhite}VLESS : ${NC}${BIYellow}$vlsx${NC} ${BIWhite}TROJAN : ${NC}${BIYellow}$trjx${NC} ${BIWhite}SHADOWSOCKS: ${NC}${BIYellow}$ssx${NC}"
+echo -e "${BIWhite}┌─────────────────────────────────────────────────┐${NC}"
+echo -e "  ${BIWhite}[${BIWhite}01${BIWhite}]${NC} ${BIWhite}• ${BIWhite}SSHWS    ${BIWhite}[${BIWhite}${status_ws}${BIWhite}]   ${BIWhite}[${BIWhite}09${BIWhite}]${NC} ${BIWhite}• ${BIWhite}Bot Tele  ${BIWhite}[${BIWhite}Menu${BIWhite}]  ${BIWhite} $NC"   
+echo -e "  ${BIWhite}[${BIWhite}02${BIWhite}]${NC} ${BIWhite}• ${BIWhite}VMESS    ${BIWhite}[${BIWhite}${status_xray}${BIWhite}]   ${BIWhite}[${BIWhite}10${BIWhite}]${NC} ${BIWhite}• ${BIWhite}BOT Notif ${BIWhite}[${BIWhite}Menu${BIWhite}]  ${BIWhite} $NC"  
+echo -e "  ${BIWhite}[${BIWhite}03${BIWhite}]${NC} ${BIWhite}• ${BIWhite}VLESS    ${BIWhite}[${BIWhite}${status_xray}${BIWhite}]   ${BIWhite}[${BIWhite}11${BIWhite}]${NC} ${BIWhite}• ${BIWhite}BCKP RSTR ${BIWhite}[${BIWhite}Menu${BIWhite}]  ${BIWhite} $NC"  
+echo -e "  ${BIWhite}[${BIWhite}04${BIWhite}]${NC} ${BIWhite}• ${BIWhite}TROJAN   ${BIWhite}[${BIWhite}${status_xray}${BIWhite}]   ${BIWhite}[${BIWhite}12${BIWhite}]${NC} ${BIWhite}• ${BIWhite}restart   ${BIWhite}[${BIWhite}Menu${BIWhite}]  ${BIWhite} $NC"  
+echo -e "  ${BIWhite}[${BIWhite}05${BIWhite}]${NC} ${BIWhite}• ${BIWhite}SHADOWSK ${BIWhite}[${BIWhite}${status_xray}${BIWhite}]   ${BIWhite}[${BIWhite}13${BIWhite}]${NC} ${BIWhite}• ${BIWhite}RUNNING   ${BIWhite}[${BIWhite}Menu${BIWhite}]  ${BIWhite} $NC"
+echo -e "  ${BIWhite}[${BIWhite}06${BIWhite}]${NC} ${BIWhite}• ${BIWhite}Noobzvpn ${BIWhite}[${BIWhite}${status_noobzvpns}${BIWhite}]   ${BIWhite}[${BIWhite}14${BIWhite}]${NC} ${BIWhite}• ${BIWhite}REboot    ${BIWhite}[${BIWhite}Menu${BIWhite}]  ${BIWhite} $NC"
+echo -e "  ${BIWhite}[${BIWhite}07${BIWhite}]${NC} ${BIWhite}• ${BIWhite}WILDCARD ${BIWhite}[${BIWhite}${status_xray}${BIWhite}]   ${BIWhite}[${BIWhite}15${BIWhite}]${NC} ${BIWhite}• ${BIWhite}UPDATE    ${BIWhite}[${BIWhite}Menu${BIWhite}]  ${BIWhite} $NC"
+echo -e "  ${BIWhite}[${BIWhite}08${BIWhite}]${NC} ${BIWhite}• ${BIWhite}BAner    ${BIWhite}[${BIWhite}${status_xray}${BIWhite}]   ${BIWhite}[${BIWhite}16${BIWhite}]${NC} ${BIWhite}• ${BIWhite}SETTING   ${BIWhite}[${BIWhite}Menu${BIWhite}]  ${BIWhite} $NC"  
+echo -e "${BIWhite}└─────────────────────────────────────────────────┘${NC}"
+echo -e "$BIWhite┌─────────────────────────────────────────────────┐${NC}"
+echo -e "${BIWhite} ORDER NAME :${NC} ${BIYellow}$username${NC}"
+echo -e "${BIWhite} Exp SCRIPT :${NC} $EXPIRE_INFO"
+echo -e "$BIWhite└─────────────────────────────────────────────────┘${NC}"
+echo -e "$BIWhite┌─────────────────────────────────────────────────┐${NC}"
+echo -e "$BIWhite ${BIWhite}Traffic${NC}      ${BIWhite}Today       Yesterday       Month   ${NC}"
+echo -e "$BIWhite ${BIYellow}Download${NC}   ${BIYellow}$today_tx $today_txv     $yesterday_tx $yesterday_txv    $month_tx $month_txv   ${NC}"
+echo -e "$BIWhite ${BIYellow}Upload${NC}     ${BIYellow}$today_rx $today_rxv     $yesterday_rx $yesterday_rxv    $month_rx $month_rxv   ${NC}"
+echo -e "$BIWhite ${BIWhite}Total${NC}    ${BIWhite}  $todayd $today_v     $yesterday $yesterday_v    $month $month_v  ${NC} "
+echo -e "$BIWhite└─────────────────────────────────────────────────┘${NC}"
 EOF
 
 read -p " Select menu : " opt
