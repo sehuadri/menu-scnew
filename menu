@@ -31,7 +31,7 @@ install_packages() {
 
 # Fungsi validasi izin yang lebih efisien dan andal
 validate_permission_and_info() {
-    local LICENSE_URL="https://raw.githubusercontent.com/sehuadri/project/main/ip"
+    local LICENSE_URL="https://raw.githubusercontent.com/sehuadri/scnew/main/ip"
     local TODAY_DATE=$(date +'%Y-%m-%d')
     
     # Cari baris di mana kolom ke-4 sama persis dengan MYIP
